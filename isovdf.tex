@@ -7,8 +7,37 @@
 \usepackage{amsmath,amsthm}
 \usepackage{unicode}
 
+\title{Why VDFs from isogenies are so cool}
+\author{Jeff, Luca}
+\date{}
+
 \begin{document}
 
-Hello $α$.
+\maketitle
+
+\section{Intro}
+
+- Isogenies vs RSA
+- Isogenies vs Class groups
+- Isogenies vs the rest
+
+\section{Trusted setup}
+
+\section{Proving evaluation ownership}
+
+% b = a^(2^t)
+
+% Classical proof: (x₁, x₂, ...) = H(a,b)
+% Ownership proof: (x₁, x₂, ...) = VRF_o(a,b) ?= H(a | b | oH'(a|b) )
+
+\section{Time-lock puzzles from isogenies}
+
+% e_X ( u φ G, H(seed) ) = s = e_Y ( u G, φ* H(seed) )
+% pk: uG
+% ct: E_s(msg)
+
+\section{Threshold VDFs}
+
+
 
 \end{document}
