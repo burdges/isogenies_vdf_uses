@@ -15,6 +15,10 @@
 
 \maketitle
 
+\begin{abstract}
+We make a compelling argument for 
+\end{abstract}
+
 \section{Intro}
 
 - Isogenies vs RSA
@@ -23,7 +27,10 @@
 
 \section{Trusted setup}
 
-\section{Proving evaluation ownership}
+\section{Proof ownership}
+
+
+Proving evaluation ownership
 
 % b = a^(2^t)
 
@@ -36,7 +43,101 @@
 % pk: uG
 % ct: E_s(msg)
 
-\section{Threshold VDFs}
+\section{Aggregated evaluation}
+
+Isogeny VDFs inherit much of the extreme flexibility BLS signatures
+possess, mostly through the various BLS aggregation strategies.
+
+As an example, there exist threshold VDF constructions that provide
+security so long as {\it either} the VDF security assumptions hold,
+{\ir or} some threshold security assumption holds.  We expect however
+that any threshold VDF involves contributors sharing secrets with
+parallel evaluations, so they sacrifice our VDF's desirable property
+that no distinguished parties.  We leave designing useful threshold VDF
+for future work
+
+We shall instead exploit the simple distinct message aggregation
+strategy for BLS signatures:  If our messages $m_i$ are all distinct,
+then the BLS signatures $\sigma_{i,j} = p_j H_2(m_i)$ may trivially
+be aggregated as $\sigma = \sum_{i,j} \sigma_{i,j}$ and verified by
+checking that $e(G_1,\sigma) = \Pi_j e(P_j, \sum_i H_2(m_i))$,
+without any concerns about relationships among the public keys
+$P_j = p_j G_1$.  
+
+We rarely see distinct message aggregation in practice, due to poor
+performance of multiplication in the target group.  Yet, aggregating
+distinct messages yields an extremely powerful techniques for isogeny
+VDFs.  We expect VDF messages to always be distinct of course, but
+beyond this we may aggregate the VDF evaluation itself whenever
+the isogenies coinside.
+
+As a simplified example,
+we consider two isogenies $φ_0 : Y \to X_0$ and $φ_1 : X_0 \to X$
+so that $φ_0*$ and $φ_0* \circ φ_1*$ are evaluation isogenies for
+two VDFs.  If we now start with two input messages $m_0$ and $m_1$,
+then we need only evaluate $φ_0*$ to compute the aggregate evaluation
+$$ \sigma = φ_0*( H_2(m_0) + φ_1* H_2(m_1) )$$
+and the aggregate verification equation
+$$ e(G_1,\sigma) = e(φ_0 G_1, H_2(m_0)) e(φ_1 φ_0 G_1, H_2(m_1)) \mathperiod $$
+In practice, we expect $\sigma_1 = φ_1*(H_2(m_1)$ would always be
+published early, so any verifiers who wished to trust the evaluation
+of $φ_1*$ need only check 
+$e(G_1,\sigma) = e(φ_0 G_1, H_2(m_0) + φ_1* H_2(m_1))$
+
+In the VDF security model, our adversary has a significant advantage
+$A$ in evaluate the VDF, meaning they can evaluate the VDF if time
+$T/A$ where $T$ is the VDF running time.  As such, contributions to
+$m_i$ only ensure security if released by contributors less than
+$T/A$ before the VDF starts running.  We should therefore favor all
+contributions arriving quickly in bursts
+
+Yet, integrating a VDF with proof-of-stake block production schemes
+like Ouroboros Praos naturally favours taking $m$ to be a hash of
+all block production VRF output throughout an entire epoch. 
+In this approach, only blocks released during the final $T/A$ of the
+epoch secure the VDF against an adversary with advantage $A$.
+As compensation, we might run roughy $A$ VDFs in parallel for $A$
+epochs delay each, but $A = 2^8$ or $2^{10}$ sound plausible if honest
+VDF evaluators do not possess specialised hardware.
+
+In our simple aggregation example, we created two entry points
+first $m_1$ and later $m_0$ into the same long running VDF evaluation
+$φ_0*$, with the earlier $m_1$ separated from the later $m_0$ by some
+short running VDF evaluation $φ_1*$.  These two entry points half our
+required number of parallel evaluations, thus reducing our cost by a
+factor of two.  We could build an arbitrarily large a tree of isogenies
+though, at least in the construction \cite[???]{???},
+which then cover our entire epoch in tiny time windows of size $T/A$,
+even when $A > 2^8$.
+
+% \sub?section{Catchup factor}
+
+There is a safety factor in our evaluation time for $φ_0*$, which
+allows both for slow evaluators to catchup when all fast evaluators
+equivocate, as well as for fast evaluators to rationally choose to
+equivocate when they see even faster evaluators releasing partial
+solutions.  We fear this safety factor cannot be applied as cleanly
+to $φ_1*$, as $φ_1* H_2(m_1)$ should be ready whenever $H_2(m_0)$
+becomes available.  In practical terms, our running time $T_{φ_1*}$
+of $φ_1*$ should not exceed half the time mini-epoch length $T_{m_0}$
+in which we accept contributions for $m_0$.  We might naively ask
+$2 A T_{m_1} \leq 2 T_{φ_1*} \leq T_{m_0}$ to place contributions
+in $m_1$ on an equal footing with contributions in $m_0$, except
+this sounds excessive due to both being processed by the long VDF
+run $φ_0*$.
+
+We can also mitigate the inequality somewhat by replacing $m_0$ with
+an $m_2$ and $φ_2$, and taking our VDF output to be
+$$ \sigma = φ_0*( φ_1* H_2(m_1) + φ_2* H_2(m_2) ) \mathperiod $$
+In this approach, $φ_2*$ runs much faster than $φ_1*$ which still
+runs much faster than $φ_0*$, but our mini-epochs can more easily
+provide equal assurances because an adversary cannot exploit their
+advantage in $φ_1*$ without also doing so in $φ_2*$.
+We pay a price for this however in that $φ_2*$ and $φ_1*$ now run
+concurrently, thereby increasing costs.
+
+TODO:  Sort out the exact consequences of this inequality
+
 
 
 
