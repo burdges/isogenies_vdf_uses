@@ -17,6 +17,11 @@
 
 \begin{abstract}
 We make a compelling argument for 
+
+We believe that both algorithmic and hardware optimisations for an
+isogeny VDF yield wide ranging benefits that go far beyond improving
+RSA speeds.
+
 \end{abstract}
 
 \section{Intro}
@@ -27,7 +32,6 @@ We make a compelling argument for
 - Isogenies vs the rest
 
 
-\section{Quantum annoyance}
 
 
 
@@ -44,7 +48,7 @@ relatively inexpensive development and deployment costs, while
 all other optimisations look cost prohibitive, even for well funded
 adversaries.
 
-As an example, we tentatively want a hardware implementation for
+As an example, we do tentatively want hardware optimisations for
 any deployed VDF, while we rule out exotic computation techniques
 like super-conducting computing.  Among the hardware implementation
 options, we note that FPGAs do provide performance similar to ASICs
@@ -54,8 +58,10 @@ so this might not require manufacturing custom ASICs.
 At the same time, we require any VDF to track newly discovered
 optimisations as well.  We should thus favor VDFs for which expected
 optimisations interact well with research and other applications.
-In this vein, we worry about optimisations that benefit only the VDF
-use case, including ASICs.
+In this vein, we worry about the implications of optimisations that
+benefit only the VDF use case, including ASICs.
+
+\subsection{Arithmetic}
 
 An isogeny VDF works by evaluating isogenies between elliptic curves
 using Velu's formulas.  In these calculations, we work with elements
@@ -76,8 +82,31 @@ constraints, like an extension to an open hardware platform, maybe an
 FPGA module for RISC-V \cite{????}, or even carefully parallelizing
 field arithmetic for GPUs \cite{????}. 
 % vaguely related: https://www.youtube.com/watch?v=4hq4yiVCopU#t=28m
+
 If fast enough, then these approaches might track algorithmic and
-technological development better. 
+technological development better.  In particular, arithmetic for an
+isogenies-based VDF appears much more widely useful.
+ 
+Recursive zkSNARKs need similarly sized pairing friendly fields at
+the 128 bit security level.  (TODO)
+
+Isogenies-based key exchanges like CSIDH \cite{CSIDH} need somewhat
+smaller fields.  CSIDH supports authentication and long-term public
+keys better than lattice-based key exchanges. 
+Also, there are low-latency circuit-based anonymity protocols like Tor,
+for which lattice-based key exchange provide post-quantum security,
+but such protocols are vulnerable to correlation attacks. 
+Avoiding correlation attacks requires more asynchronous cryptography,
+like in the Sphinx mixnet packet format, but CSIDH fits such protocols
+much better than lattice schemes.  Improved CSIDH performance could
+thus dramatically improve routing in future anonymity technologies.
+
+Isogenies schemes like CSIDH remain an interesting candidate for small
+post-qauntum signatures too.  TODO: Luca SeaSign ???
+
+We sugest arithmetic optimisations, including hardware, that favours
+all these use cases together would become more accessible to all users
+and better track advancing technologies.
 
 \subsection{Memory}
 
@@ -98,73 +127,85 @@ super-conducting computing.
 
 \subsection{Algorithms}
 
-We choose the prime field $\Z/p\Z$ of definition for our curves so
-that $p+1$ has a large prime factor and a large power of two.  
-
-TODO: Is this correct Luca?  Explain further.
-
-We can therefore be confidence that our arithmetic operations provide
-relatively optimal performance.  In other words, we know relatively
-optimal residue bases for working in $\Z/p\Z$ \cite{????}.
-
-We also note that Velu's formulas require ???? which helps mitigate
-any advantage from seeking parallelism through alternative residue
-number systems.
-
-TODO:  Luca, is this at all true?  Citations?
-
-At the same time, there is an extensive literature about accelerating
-RSA using residue number systems \cite{????}.
+There is an extensive literature about parallelizing modular powers
+for RSA using residue number systems \cite{RNSonGPU07,????}. % https://eprint.iacr.org/2007/187.pdf
 We know for example that addition modulo $N$ should have running-time
 $O(\log \log \log N)$ with an optimal residue base, but only
 running-time $O(\log \log N)$ with a more natural residue base of only
-Mersenne primes \cite[\S4.6]{Parhami}.  
-We believe this reduces confidence in an RSA ASIC for VDF evaluation
-because implementing a residue number systems ion hardware require far
-more silicon.  Yet, these may make RSA more amenable to GPUs.
+Mersenne primes \cite[\S4.6]{Parhami}.
+There are explanation in \cite{RNSonGPU07} and \cite{Araujo12} of
+doing Montgomery modular multiplication, and thus squarings, over
+two distinct residue bases. 
+% also https://pdfs.semanticscholar.org/0fef/478462c8f21e75364ca767b1835f3f05f267.pdf
 
-TODO: Again, is this at all true? 
+We expect these reduces confidence in any particular ASIC for RSA
+squarings, especially if finding the optimal residue base for a
+particular modulous proves interesting.  Also, residue number systems
+require far more silicon, likely increasing ASIC costs.
 
-\subsection{Synergies??}
+In the isogenies VDF by comparison, we choose the prime field $\Z/p\Z$
+of definition for our curves so that $p+1$ has a large prime factor
+and a large power of two.  
+We can therefore have more confidence that our arithmetic operations
+provide relatively optimal performance \cite{????}.  In other words,
+we know relatively optimal residue bases for working in $\Z/p\Z$ \cite{????}.
 
-We believe that both algorithmic and hardware optimisations for an
-isogeny VDF yield wide ranging benefits that go far beyond improving
-RSA speeds.
+TODO: Is this correct Luca?  Explain further.  
+TODO: Do Velu's formula's need anything that makes using RNS hard?
 
-We also noted (TODO) that an isogenies VDF construction also provides
-a compact quantum annoying VRF and hence signature.  There are some
-properties of BLS signatures that carry over to this quantum annoying
-VRF, like distinct message aggregation.  It's signatures are far
-smaller than any known post-quantum signature scheme too, while also
-providing competitive performance.  We think quantum annoyance could
-provide an important stepping stone while the threat from quantum
-computers increases. In particular, there are many consensus protocols
-in which VRFs run frequently and quickly, thus increasing the confidence
-in quantum annoyance.  
+An isogenies-based VDF instead risks mathematical or algorithmic
+advancements in evaluating Velu's formulas, which initially sound
+much more significant than arithmetic optimisations.  We suspect
+this risk might actually be lower however for several reasons:
 
-We've noted above that arithmetic for an isogenies-based VDF sounds
-broadly useful.
+We expect significant advancements would arise by academics improving
+Velu's formulas for specialised field and curve paramaters.
+Initially, the vulnerable paramaters would usually differ from the
+paramaters used by our VDF, which translates into time to replace
+the VDF paramaters, if appropriate.  
 
-We assert such generic tools at least ``ethically offsets'' the
-high cost for developing specialised hardware, even if it does not
-bring additional financial backing.  In particular, there are several
-important cryptographic projects that benefit: 
+As above, we observe that CSIDH \cite{CSIDH} benefits enormously from
+improving Velu's formulas, which translates into faster post-quantum
+authentication and anonymous routing, and maybe post-quantum signatures.
 
-Recursive zkSNARKs need similarly sized pairing friendly fields at
-the 128 bit security level.  (TODO)
+\subsection{Quantum annoyance}
 
-Isogenies-based key exchanges like CSIDH need somewhat smaller fields.
-There are low-latency circuit-based anonymity protocols, 
-for which lattice-based key exchange provide post-quantum security,
-but any such protocols are vulnerable to correlation attacks. 
-Avoiding correlation attacks requires more asynchronous cryptography,
-like in the Sphinx mixnet packet format, but CSIDH fits such protocols
-much better than lattice schemes.  Improved CSIDH performance could
-thus dramatically improve routing in future anonymity technologies.
+We say a signature scheme, VRF, or VDF is {\em quantum annoying} if
+an adversary with a quantum computer can forge signatures, compute
+outputs without the public key, or compute outputs very quickly,
+but they must utilize the quantum computer for each separate attack.
+In other words, a quantum computer cannot break the public key or
+paramaters once to provide information with which these attacks can
+be run on a classical computer. 
 
-CSIDH remains an interesting candidate for small post-qauntum signatures
-too.  TODO: Luca SeaSign ???
+As implemented, the class group VDF design is quantum annoying because
+new class groups with different orders get constructed for each input.
 
+There is a VRF and signature scheme similar to our VDF in which the
+isogeny $φ$ gets kept secret, and runs quickly, and the public key
+is the curve $X$ and $φ G_1$.  Now our output $\sigma = φ* H(m)$
+acts as signature and the verification equation is 
+$$ e_X( φ G_1, H(m) ) = e_Y( G_1, \sigma ) \mathperiod $$
+
+Now our isogenies-based VDF construction and this VRF and signature
+scheme are quantum annoying because the adversary cannot break the
+isogeny itself from merely $φ$, but can find a discrete log for each
+input point $H(m)$.
+
+There are some properties of BLS signatures that carry over to this
+quantum annoying VRF like distinct message aggregation.  
+Its signatures are far smaller than any known post-quantum signature
+scheme, while also providing competitive verifier performance.  
+We think quantum annoyance could provide an important stepping stone
+while the threat from quantum computers increases.  In particular,
+there are many consensus protocols in which VRFs run frequently and
+quickly, thus increasing the confidence derived from quantum annoyance.  
+
+We note that deterministic hash-based signatures like Sphincs should
+give fully post-quantum VRFs, but their extreme size makes them
+unwieldy for consensus protocols.  We hope work on isogenies-based
+signatures eventually yields more compact post-quantum VRFs too.
+We do not know if lattice-based VRFs are even possible.
 
 
 \section{Trusted setup}
