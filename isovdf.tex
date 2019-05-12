@@ -33,18 +33,57 @@ We make a compelling argument for
 
 \section{Performance}
 
-...
+As a security assumption, we some bound $A$ so that if the fastest
+honest evaluator can evaluate out VDF in time $T$ then no adversary
+can evaluate our VDF in time $T/A$.  We always have some lower
+bound on $T/A$ in practice, so smaller $A$ evaluating the VDF cheaper.
 
-\subsection{Hardware}
+We choose VDF designs to create a cost divide among performance
+optimisations.  We want some reasonable optimisations to have
+relatively inexpensive development and deployment costs, while
+all other optimisations look cost prohibitive, even for well funded
+adversaries.
 
-We assume adversaries cannot evaluate our VDF too quickly, so
-VDF security is dramatically improved by being implement in hardware.
-At present, RSA based VDFs appear simplest to implement in hardware 
-\cite{???}.  % Justin Drake https://ethresear.ch/t/minimal-vdf-randomness-beacon/3566 or maybe something else from https://vdfresearch.org
+As an example, we tentatively want a hardware implementation for
+any deployed VDF, while we rule out exotic computation techniques
+like super-conducting computing.  Among the hardware implementation
+options, we note that FPGAs do provide performance similar to ASICs
+for some algorithms \cite{????},
+so this might not require manufacturing custom ASICs.
+
+At the same time, we require any VDF to track newly discovered
+optimisations as well.  We should thus favor VDFs for which expected
+optimisations interact well with research and other applications.
+In this vein, we worry about optimisations that benefit only the VDF
+use case, including ASICs.
+
+An isogeny VDF works by evaluating isogenies between elliptic curves
+using Velu's formulas.  In these calculations, we work with elements
+in a prime field $\Z/p\Z$ and some low degree field extensions. 
+We need a prime $p$ roughly half the size of a 3072 but RSA composite
+with a similar 128 bit security level, or about 3/4ths the size of the
+current 2048 bit RSA VDF proposal with 112 bits of security.
+
+At present, RSA based VDFs appear simplest to implement in hardware
+because they only require a squaring operation. % TODO: True??
+% Justin Drake https://ethresear.ch/t/minimal-vdf-randomness-beacon/3566 or maybe something else from https://vdfresearch.org
+In the isogeny VDF, we need more involved computations with these
+large field elements than merely the squarings required by RSA. 
+
+Yet, there are wide ranging benefits for doing real arithmetic in
+large prime fields quickly.  There are several options that fit these
+constraints, like an extension to an open hardware platform, maybe an
+FPGA module for RISC-V \cite{????}, or even carefully parallelizing
+field arithmetic for GPUs \cite{????}. 
+% vaguely related: https://www.youtube.com/watch?v=4hq4yiVCopU#t=28m
+If fast enough, then these approaches might track algorithmic and
+technological development better. 
+
+\subsection{Memory}
 
 We accelerate isogenies VDFs by using intermediate curve coefficients
-obtained from a previous slower run.  As such, an isogenies VDF either
-requires dramatically more hardware to recompute these coefficients,
+precomputed during a previous slower run.  As such, an isogenies VDF
+either requires dramatically more hardware to recompute coefficients,
 or more likely fetches them from memory.  
 
 TODO:  Memory bandwidth estimates?
@@ -57,33 +96,54 @@ We cannot yet claim that an isogenies VDF can be memory hard,
 but at minimum this makes exotic attackers less likely, including
 super-conducting computing.
 
+\subsection{Algorithms}
 
-\subsection{Synergies}
+We choose the prime field $\Z/p\Z$ of definition for our curves so
+that $p+1$ has a large prime factor and a large power of two.  
+
+TODO: Is this correct Luca?  Explain further.
+
+We can therefore be confidence that our arithmetic operations provide
+relatively optimal performance.  In other words, we know relatively
+optimal residue bases for working in $\Z/p\Z$ \cite{????}.
+
+We also note that Velu's formulas require ???? which helps mitigate
+any advantage from seeking parallelism through alternative residue
+number systems.
+
+TODO:  Luca, is this at all true?  Citations?
+
+At the same time, there is an extensive literature about accelerating
+RSA using residue number systems \cite{????}.
+We know for example that addition modulo $N$ should have running-time
+$O(\log \log \log N)$ with an optimal residue base, but only
+running-time $O(\log \log N)$ with a more natural residue base of only
+Mersenne primes \cite[\S4.6]{Parhami}.  
+We believe this reduces confidence in an RSA ASIC for VDF evaluation
+because implementing a residue number systems ion hardware require far
+more silicon.  Yet, these may make RSA more amenable to GPUs.
+
+TODO: Again, is this at all true? 
+
+\subsection{Synergies??}
 
 We believe that both algorithmic and hardware optimisations for an
 isogeny VDF yield wide ranging benefits that go far beyond improving
 RSA speeds.
 
-As noted above (TODO), the isogenies VDF construction also provides a
-quantum annoying VRF and hence signature.  There are some properties
-of BLS signatures that carry over to this quantum annoying VRF, like
-distinct message aggregation.  It's signatures are far smaller than
-any known post-quantum signature scheme too, while also providing
-competitive performance.  We think quantum annoyance could provide
-an important stepping stone while the threat from quantum computers
-increases.  In particular, there are many consensus protocols in which
-VRFs run frequently and quickly, thus increasing the confidence in
-quantum annoyance.  
+We also noted (TODO) that an isogenies VDF construction also provides
+a compact quantum annoying VRF and hence signature.  There are some
+properties of BLS signatures that carry over to this quantum annoying
+VRF, like distinct message aggregation.  It's signatures are far
+smaller than any known post-quantum signature scheme too, while also
+providing competitive performance.  We think quantum annoyance could
+provide an important stepping stone while the threat from quantum
+computers increases. In particular, there are many consensus protocols
+in which VRFs run frequently and quickly, thus increasing the confidence
+in quantum annoyance.  
 
-We next note that an isogeny VDFs works with elements in a prime
-field $\Z/p\Z$ with $p$ roughly half the size of an RSA composite
-with a similar 128 bit security margin, or about 3/4ths the size of
-the current 2048 bit RSA VDF proposal.  
-In the isogeny VDF, there are more involved computations with
-these values than merely the squarings required by RSA.  
-Yet, there are large side benefits for doing arithmetic in large prime
-fields via some extension to an open hardware platform like RISC-V.
-% vaguely related: https://www.youtube.com/watch?v=4hq4yiVCopU#t=28m
+We've noted above that arithmetic for an isogenies-based VDF sounds
+broadly useful.
 
 We assert such generic tools at least ``ethically offsets'' the
 high cost for developing specialised hardware, even if it does not
