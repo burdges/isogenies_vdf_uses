@@ -1,0 +1,59 @@
+
+\documentclass[fleqn,xcolor={usenames,dvipsnames}]{beamer}
+
+\usetheme{Warsaw}
+
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{amsmath} % {amssymb,amsfonts}
+\usepackage{mathtools}% Loads amsmath
+
+% \usepackage{eurosym}
+
+% \usepackage{xcolor}
+% \usepackage{tikz}
+% \usetikzlibrary{shapes,arrows}
+% \usetikzlibrary{positioning}
+% \usetikzlibrary{calc}
+
+\title[http://Web3.Foundation]{Unlimited private simultaneous time-lock puzzels from isogenies}
+\institute[W3F]{Web 3 Foundation}
+\author[Jeff Burdges]{Jeff Burdges}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}%[t]
+
+Let $e_Z : Z_1 \times Z_2 \to T$ be a pairing on elliptic curves $Z \in \{ X, Y \}$ \\ \smallskip
+with slooow dual isogenies $\phi : Y \to X$ and $\phi^* : X \to Y$. \\ \smallskip
+\hspace*{3pt} {\small See: \url{https://eprint.iacr.org/2019/166}}
+
+\medskip
+
+\def\seed{\mathtt{seed}}
+
+$$
+ e_Y \bigl( H_1(\seed), u \overbrace{\phi G_2}^{const} \bigr) 
+= s =
+ e_X \bigl( \overbrace{\phi^* H_1(\seed)}^{VDF}, \underbrace{u G_2}_{U} \bigr) 
+$$ 
+
+\medskip
+
+Anyone sends ciphertexts $\bigl( U,E_s(\mathtt{vote}) \bigr)$,  \\
+\hspace*{3pt} after $\seed$ revealed but well before $\phi^* H_1(\seed)$.
+
+\bigskip
+\bigskip
+\bigskip
+
+% \pause
+
+Moral: \ ASICs for RSA are not the best use for 30 millon USD.
+
+\end{frame}
+
+
+\end{document}
+
