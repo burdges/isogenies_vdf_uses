@@ -7,6 +7,13 @@
 \usepackage{amsmath,amsthm}
 \usepackage{unicode}
 
+\newtheorem*{rawnamedtheorem}{\therawnamedtheorem}
+\newcommand{\therawnamedtheorem}{\error}
+\newenvironment{namedtheorem}[1]{\renewcommand{\therawnamedtheorem}{#1}
+   \begin{rawnamedtheorem}}
+  {\end{rawnamedtheorem}}
+
+
 \title{Why VDFs from isogenies are so cool}
 \author{Jeff, Luca}
 \date{}
@@ -37,10 +44,11 @@ RSA speeds.
 
 \section{Performance}
 
-As a security assumption, we some bound $A$ so that if the fastest
-honest evaluator can evaluate out VDF in time $T$ then no adversary
-can evaluate our VDF in time $T/A$.  We always have some lower
-bound on $T/A$ in practice, so smaller $A$ evaluating the VDF cheaper.
+As a security assumption, we know some bound $A$ such that if the
+fastest honest evaluator can evaluate our VDF in time $T$ then no
+adversary can evaluate our VDF in time $T/A$.  
+We always have some lower bound on $T/A$ in practice, so smaller
+$A$ makes evaluating the VDF cheaper.
 
 We choose VDF designs to create a cost divide among performance
 optimisations.  We want some reasonable optimisations to have
@@ -49,11 +57,8 @@ all other optimisations look cost prohibitive, even for well funded
 adversaries.
 
 As an example, we do tentatively want hardware optimisations for
-any deployed VDF, while we rule out exotic computation techniques
-like super-conducting computing.  Among the hardware implementation
-options, we note that FPGAs do provide performance similar to ASICs
-for some algorithms \cite{????},
-so this might not require manufacturing custom ASICs.
+any deployed VDF, probably an FPGA or maybe even an ASIC, while we
+exclude exotic computation techniques like super-conducting computing.
 
 At the same time, we require any VDF to track newly discovered
 optimisations as well.  We should thus favor VDFs for which expected
@@ -61,7 +66,7 @@ optimisations interact well with research and other applications.
 In this vein, we worry about the implications of optimisations that
 benefit only the VDF use case, including ASICs.
 
-\subsection{Arithmetic}
+\subsection{Hardware}
 
 An isogeny VDF works by evaluating isogenies between elliptic curves
 using Velu's formulas.  In these calculations, we work with elements
@@ -76,19 +81,17 @@ because they only require a squaring operation. % TODO: True??
 In the isogeny VDF, we need more involved computations with these
 large field elements than merely the squarings required by RSA. 
 
-Yet, there are wide ranging benefits for doing real arithmetic in
-large prime fields quickly.  There are several options that fit these
-constraints, like an extension to an open hardware platform, maybe an
-FPGA module for RISC-V \cite{????}, or even carefully parallelizing
-field arithmetic for GPUs \cite{????}. 
-% vaguely related: https://www.youtube.com/watch?v=4hq4yiVCopU#t=28m
-
-If fast enough, then these approaches might track algorithmic and
-technological development better.  In particular, arithmetic for an
-isogenies-based VDF appears much more widely useful.
+Yet, there are wide ranging benefits to fast arithmetic in large
+prime fields, or even full isogeny calculations.  We must target
+FPGAs first anyways, so our development effort would therefore
+benefit other important cryptographic protocols:
  
 Recursive zkSNARKs need similarly sized pairing friendly fields at
 the 128 bit security level.  (TODO)
+There remain diverse opinions on field sizes for pairning friendly
+curves for use even with non-recursive zkSNARKs, with some growing
+largish, but regardless prover and verifier time for zkSNARKs stand
+to benefit even over conventionally sized fields.  
 
 Isogenies-based key exchanges like CSIDH \cite{CSIDH} need somewhat
 smaller fields.  CSIDH supports authentication and long-term public
@@ -101,12 +104,40 @@ like in the Sphinx mixnet packet format, but CSIDH fits such protocols
 much better than lattice schemes.  Improved CSIDH performance could
 thus dramatically improve routing in future anonymity technologies.
 
-Isogenies schemes like CSIDH remain an interesting candidate for small
-post-qauntum signatures too.  TODO: Luca SeaSign ???
+Isogenies schemes like CSIDH remain an interesting long-term candidate
+for small post-qauntum signatures and VRFs, although current schemes
+like CSI-FiSh \cite{CSI-FiSh} has no advantages over say lattice-based
+schemes like Dilithium \cite{Dilithium}
+% https://www.esat.kuleuven.be/cosic/csi-fish-a-new-record-class-group-computation-and-fast-isogeny-based-signatures/
+% https://pq-crystals.org/dilithium/index.shtml
 
-We sugest arithmetic optimisations, including hardware, that favours
-all these use cases together would become more accessible to all users
-and better track advancing technologies.
+We think arithmetic optimisations, including FPGA designs, that favour
+all these use cases together would become more accessible to all users,
+and thus better track technological advances.
+
+We also note that RISC-V and ARM chips with FPGA coprosessors exist
+now, which although questionable choices for VDF evaluation, sound
+like excellent options for the above use cases.
+% vaguely related: https://www.youtube.com/watch?v=4hq4yiVCopU#t=28m
+
+Among likely hardware implementation options, 
+we foresee no pressing need to favor ASICs over FPGAs because highly
+optimised ASICs are only about 3-4 times faster than high speed FPGAs.
+% to \cite  http://www.eecg.toronto.edu/~jayar/pubs/kuon/kuontcad06.pdf via https://www.quora.com/What-are-the-differences-between-ASIC-and-FPGA?share=1
+
+These estimates might increase for non-parallelizable computations
+because an FPGA can occupy 30-40 times as much space though, or
+20 times when an FPGA coprosessor for field arithmetic.
+As a rule, an ASICs largest savings over an FPGA actually come in
+power consumption, like 14 times or 7 times for pure an coprosessor
+designs, and per unit costs.  We do not care about either
+because only a handful of nodes evaluate VDFs.  
+
+As discussed below, arithmetic can and should be parallelized,
+but attempts to do so using GPUs have mostly failed due to GPUs poor
+performance for the few non-parallel parts of reductions.  
+We do note such work focussed largely on RSA not fields of specially
+crafted large prime order though.
 
 \subsection{Memory}
 
@@ -125,10 +156,22 @@ We cannot yet claim that an isogenies VDF can be memory hard,
 but at minimum this makes exotic attackers less likely, including
 super-conducting computing.
 
-\subsection{Algorithms}
+\subsection{Arithmetic}
 
 There is an extensive literature about parallelizing modular powers
-for RSA using residue number systems \cite{RNSonGPU07,????}. % https://eprint.iacr.org/2007/187.pdf
+for RSA by representing numbers using the Chinese remainder theorem,
+known as a residue number systems, like \cite{RNSonGPU07,Moss07,Araujo12}.
+Among the strongest asymptotic results comes from \cite{BernsteinSorenson07}:
+
+\begin{namedtheorem}{Theorem 8.1 of \cite{BernsteinSorenson07}}
+There is an algorithm for the Common CRCW PRAM that, given the binary
+representations of positive integers $x$, $e$, and $m$, of total bit
+length $n$, computes the binary representation of $x^e \mod m$ in time
+$O_\epsilon(n / \log \log n)$ using $O(n^{2+\epsilon})$ processors.
+\end{namedtheorem}
+% https://cr.yp.to/antiforgery/meecrt-20060914-ams.pdf
+
+
 We know for example that addition modulo $N$ should have running-time
 $O(\log \log \log N)$ with an optimal residue base, but only
 running-time $O(\log \log N)$ with a more natural residue base of only
@@ -138,7 +181,9 @@ doing Montgomery modular multiplication, and thus squarings, over
 two distinct residue bases. 
 % also https://pdfs.semanticscholar.org/0fef/478462c8f21e75364ca767b1835f3f05f267.pdf
 
-We expect these reduces confidence in any particular ASIC for RSA
+
+
+We think these reduces confidence in any particular ASIC for RSA
 squarings, especially if finding the optimal residue base for a
 particular modulous proves interesting.  Also, residue number systems
 require far more silicon, likely increasing ASIC costs.
