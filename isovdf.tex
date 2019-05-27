@@ -142,19 +142,38 @@ crafted large prime order though.
 \subsection{Memory}
 
 We accelerate isogenies VDFs by using intermediate curve coefficients
-precomputed during a previous slower run.  As such, an isogenies VDF
-either requires dramatically more hardware to recompute coefficients,
-or more likely fetches them from memory.  
+precomputed during a previous slower run, which depends upon memory
+latency.  We suggest however that memory latency provides a latency
+target for the arithmetic parallelization discussed below.
 
-TODO:  Memory bandwidth estimates?
+TODO:  Memory bandwidth estimates?  Where?
 
-TODO:  Advantages and disadvantages of memory bandwidth vs computation? 
+In principle, an attacker might recompute these coefficients just in
+time.  Yet, these precomputations have greater circuit depth, requiring
+$O(T \log p)$ time as opposed to the $O(T)$ required for VDF evaluation
+\cite[pp. 21]{IsogeniesVDF}.  At present \cite[pp. 15]{IsogeniesVDF} 
+suggest $\log p \approx 1500$, but this can easily be increased.
+An attacker must also do this computation in parallel, which further
+increases their overhead.
 
-TODO:  Additional circuit complexity to recompute cefficients?
+Attackers who cannot keep these precomputations on the same chip remain
+limited to the memory bus speed, and hence the speed of light. 
+There remains a risk of attackers adding several independent busses to
+different memory blocks, but this sounds limited by space.
 
-We cannot yet claim that an isogenies VDF can be memory hard,
-but at minimum this makes exotic attackers less likely, including
-super-conducting computing.
+We consider this extremely promising because industrial applications
+like machine learning also befit form FPGAs with high memory bandwidth.
+Indeed FPGAs with memory bandwidth comparable to Intel Xeons have
+existed since 2015, and 
+% https://www.achronix.com/achronix-introduces-the-highest-fpga-memory-bandwidth-pcie-acceleration-board-for-data-center-applications/
+modern designs incorporate arithmetic circuits directly.
+% https://www.achronix.com/product/speedster7t/
+% Intel has similar equipment, but not sure the links.
+These are admittedly highly specialised machines, but they resemble
+conventional computers far more closely than an ASICs.
+We think their prevalence in industry should therefore increase
+confidence in the VDF latency dramatically, especially against
+exotic attackers, like super-conducting computing.
 
 \subsection{Arithmetic}
 
