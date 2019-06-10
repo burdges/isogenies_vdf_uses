@@ -4,14 +4,21 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{tikz}
-\usepackage{amsmath,amsthm}
+\usepackage{amsmath,amsthm,amsfonts}
 \usepackage{unicode}
+\usepackage{hyperref}
+
 
 \newtheorem*{rawnamedtheorem}{\therawnamedtheorem}
 \newcommand{\therawnamedtheorem}{\error}
 \newenvironment{namedtheorem}[1]{\renewcommand{\therawnamedtheorem}{#1}
    \begin{rawnamedtheorem}}
   {\end{rawnamedtheorem}}
+
+\newcommand{\Z}{\mathbb{Z}}
+
+\newcommand\mathperiod{.}
+\newcommand\mathcomma{,}
 
 
 \title{Why VDFs from isogenies are so cool}
@@ -247,14 +254,14 @@ new class groups with different orders get constructed for each input.
 
 There is a VRF and signature scheme similar to our VDF in which the
 isogeny $φ$ gets kept secret, and runs quickly, and the public key
-is the curve $X$ and $φ G_1$.  Now our output $\sigma = φ* H(m)$
+is the curve $X$ and $φ G_1$.  Now our output $\sigma = φ* H_2(m)$
 acts as signature and the verification equation is 
-$$ e_X( φ G_1, H(m) ) = e_Y( G_1, \sigma ) \mathperiod $$
+$$ e_X( φ G_1, H_2(m) ) = e_Y( G_1, \sigma ) \mathperiod $$
 
 Now our isogenies-based VDF construction and this VRF and signature
 scheme are quantum annoying because the adversary cannot break the
 isogeny itself from merely $φ$, but can find a discrete log for each
-input point $H(m)$.
+input point $H_2(m)$.
 
 There are some properties of BLS signatures that carry over to this
 quantum annoying VRF like distinct message aggregation.  
@@ -294,7 +301,7 @@ an RSA modulus $n = p q$ with $p$ and $q$ unknown.  At minimum, such
 a synchronous trusted setup limits participation and casts doubt on
 the system's security.  
 
-TODO: Comment on the RSA trusted setup proposed by Abhi Shelat at Ligero, as explained in ligeroRSA.pdf and  https://www.youtube.com/watch?v=RwrJXO_ecRI&list=PLaM7G4Llrb7y075mVXGmSABDP9Nb_PsBq&index=7
+TODO: Comment on the RSA trusted setup proposed by Abhi Shelat at Ligero, as explained in ligeroRSA.pdf and  \url{https://www.youtube.com/watch?v=RwrJXO_ecRI&list=PLaM7G4Llrb7y075mVXGmSABDP9Nb_PsBq&index=7}
 
 Isogenies VDFs do require a nicersequential trusted setup because the
 distinguished starting curve admit more optimisations when evaluating
@@ -352,14 +359,14 @@ harm performance.
 
 An isogeny VDF presents a minor challenge here because the proof
 is only the output.  We therefore add a separate ownership proof
-consisting of $x = o φ_{1/2} G_1$ and $y = o^{-1} φ_{1/2}* H(m)$
+consisting of $x = o φ_{1/2} G_1$ and $y = o^{-1} φ_{1/2}* H_2(m)$
 where $O = o G_1$ is the evaluator's public key and
 $φ_{1/2} : Y \to Z$ and $φ_{1/2}* : X \to Z$ are isogenies to
 the midpoint curve $Z$ half way between $X$ and $Y$.
 We may verify the public key's correctness by checking
 $e_X(O, G_2) = e_Z(x, G_2)$ and verify the proofs correctness by
 checking
-$$ e_X( φ G_1, H(m) ) = e_Z( φ_{1/2} G_1, H(m) ) = e_Y( G_1, φ_{1/2}* H(m) ) \mathperiod $$
+$$ e_X( φ G_1, H_2(m) ) = e_Z( φ_{1/2} G_1, H_2(m) ) = e_Y( G_1, φ_{1/2}* H_2(m) ) \mathperiod $$
 
 % Classical proof: (x₁, x₂, ...) = H(a,b)
 % Ownership proof: (x₁, x₂, ...) = VRF_o(a,b) ?= H(a | b | oH'(a|b) )
@@ -376,7 +383,7 @@ We therefore propose that VDFs be evaluated in stages to provide live informatio
 We could chain evaluations with any VDF design, but we require separate proofs for stages won by different evaluators, if using either Pietrzak or Wesolowski's strategies.  We expect vagaries from block production and finality to randomize the VDF winners enough to make proof size linear in the number of stages.  We might produce proofs that combine several stages, except this makes proof productions far slower.
 
 Isogenies VDFs provide a dramatic savings here because the proof is only the output.
-$$ e_X( φ G_1, H(m) ) = e_{X_{1/2}}( φ_{1/2} G_1, φ_{1/2}* H(m) ) = e_Y( G_1, φ* H(m) ) \mathperiod $$
+$$ e_X( φ G_1, H_2(m) ) = e_{X_{1/2}}( φ_{1/2} G_1, φ_{1/2}* H_2(m) ) = e_Y( G_1, φ* H_2(m) ) \mathperiod $$
 
 
 \section{Time-lock puzzles}
@@ -388,40 +395,118 @@ amounts to running the RSA based VDF in an RSA group for which the
 puzzle creator knows the trap door $p$ and $q$ of the RSA composite
 $n = p q$.  
 
-We foresee extensive issues with deploying their RSA time-lock puzzle
-protocol:
-We need a puzzle of sufficient value to be worth solving, which makes
-RSA time-lock puzzles useless for voting and vicary auctions. 
-If we incentivise puzzle solving then our puzzle's creator can hijack
-the rewards.   
+\subsection{Parallel time-locks}
+
+There are seemingly insurmountable problems with deploying an RSA
+time-lock puzzle protocol:
+We need a puzzle of sufficient value to be worth solving to prevent
+catastrophic denial of service attacks, but almost any realistic use
+cases fail this test.  In particular, RSA time-lock puzzles are
+useless for important applications like vicary auctions and voting. 
+Also, if we incentivise puzzle solving then our puzzle's creator can
+hijack the rewards.  
 
 We expect some advanced RSA trusted setup MPC would permit multiple
 parties to encrypt messages to an eventual decryption, but doing this
 sounds extremely complex.
 
-Isogenies VDFs solve this problem far more elegantly:  We regard the
-VDF evaluation $φ* H(m)$ as an identity-based secret key for an
-identity-based encryption scheme.  In this analogy, our identity is
-the VDF's seed $m$, while our master public key is $φ G$, and
-our master secret key is the isogeny $φ*$ itself.
+Isogenies VDFs solve this problem far more elegantly though:
+We regard the VDF evaluation $φ* H_2(m)$ as an identity-based secret
+key for an identity-based encryption scheme.  In this analogy, our
+identity is the VDF's seed $m$, while our master public key is $φ G$,
+and our master secret key is the isogeny $φ*$ itself.
 
-In concrete terms, we first agree upon our seed $m$ and start computing
-our VDF evaluation $φ* H(m)$.  At this point, any party can create an
-ephemeral scalar $u$, compute $s_u = e_X ( u φ G, H(m) )$, and
-send a ciphertext $(u G, E_{s_u}(\ldots))$.
-After we compute the VDF evaluation $φ* H(m)$ then anyone knowing it
-can compute $s_u = e_Y ( u G, φ* H(m) )$ and decode this ciphertext.
+In concrete terms, we have a party, normally a peer-to-peer network,
+that agrees upon and publishes our seed $m$ and starts computing our
+VDF evaluation $φ* H_2(m)$.  We trust thisparty cannot delay publishing
+$m$, meaning one honest peer contribute to $m$ less than $T/A$ before
+the VDF starts running in the peer-to-peer network case.
+After this VDF run seeded by $m$ commences, any party Alice may create
+an ephemeral secret scalar $u$, compute $s_u = e_X ( u φ G_1, H_2(m) )$,
+and sends a ciphertext $(u G_1, E_{s_u}(\ldots))$ to any party Bob.
+After an evaluator computes and publishes the VDF evaluation
+$φ* H_2(m)$ then Bob can compute $s_u = e_Y ( u G_1, φ* H_2(m) )$ and
+decrypt this ciphertext.
 
-Importantly, these parties have no involvement with running the VDF,
-beyond monitoring the timing with which $m$ became known.  As such,
-we support vicary auctions and voting with an unlimited number of
-participants, or numerous other use cases for distributed systems.
+Importantly, our parties Alice and Bob have no involvement with
+running the VDF, beyond monitoring the agreement process for $m$,
+including the time when $m$ became known.  We expect the amortised
+costs to Bob to be zero, either because maybe participants run one
+puzzle together, or more likely because our peer-to-peer networks
+evaluates the VDF for another reasons, like unbiased randomness.
+Alice cannot therefore exploit the time-lock puzzles for such bad
+denial of service attacks.
 
-% e_X ( u φ G, H(m) ) = s = e_Y ( u G, φ* H(m) )
+These free parallel time-lock puzzles have numerous applications in
+distributed systems.  We obtain almsot trivial protocols for voting
+and vicary auctions that provide far stronger security that existing
+protocols, which mostly depend upon threshold secret sharing.
+As above, all participants simply encrypt their bid or vote to our
+eventual VDF evaluation $φ* H_2(m)$.  
+
+In the voting case, we easily obtain a secret balot using standard
+techniques, like authenticating voters when their votes enter some
+mixing service, or zero-knowledge proofs over Merkle trees, or
+blind signature constructions, like rerandomizable certificates.
+
+% e_X ( u φ G_1, H_2(m) ) = s = e_Y ( u G_1, φ* H_2(m) )
 % pk: uG
 % ct: E_s(msg)
 
 TODO: Show that game is better
+
+\subsection{Sequential time-locks}
+
+An RSA time-lock puzzle can ostensibly be given some extremely long
+running time, like years or decades, while creating a slow isogneny
+requires extensive precomputation.  An isogeny VDF can recapture the
+classical time lock puzzle game easily enough, but only by sacrificing
+its parallel users:
+
+As before, Alice first selects an ephemeral secret scalar $u$ and
+obtains the initial VDF seed $m_{0,u}$.  Yet, now she iteratively
+computes $s_{i,u} = e_X ( u φ G_1, H_2(m_i) )$ and chooses subsequent
+VDF seeds $m_{i+1,u} = H(s_{i,u})$, and finally sends the ciphertext
+$(u G_1, E_{s_{k,u}}(\ldots))$ to Bob.
+After Bob known $m_{i,u}$ evaluates $φ* H_2(m_{i,u})$ then he can
+compute $s_{i,u} = e_Y ( u G_1, φ* H_2(m_i) )$, and find the subsequent
+VDF seed $m_{i+1,u} = H(s_{i,u})$.
+
+As $m_{i,u}$ depends upon $u$ for $i>0$, we no longer obtain parallel
+time-lock puzzles from this construction, which makes it an extreme
+denial of service target.  Alice can however choose $k$ as large as
+she likes, subject to doing $k$ pairings herself.
+We note $m_{0,u}$ may originate with some trusted source, which
+prevents some attacks on RSA time-lock puzzles, like Alice stealing
+rewards from an evaluator.
+
+\subsection{Time-lock VRFs aka VDRFs}
+
+If $φ$ and $φ*$ are secret dual isogenies held by one party Alice,
+then our VDF output $φ* H_2(m)$ amounts to a BLS signature, with
+a secret isogeny $φ*$ replacing the secret scalar.  As noted
+elsewhere, this gives a quantum annoying VRF, which sounds useful.
+
+We conjecture the map $m \mapsto φ* H_2(m)$ could simultaneously be
+both a VRF and a VDF.  This {\em verifiable delayed random function} 
+(VDRF) gives a time-lock VRF.  We believe the Caucus component of
+the Fantomette scheme \cite[\S5]{Fantomette} to be only currently
+published protocol that uses private VDF evaluations.
+
+In principle, we could find find another pairing friendly curve
+whose group order is divisible by our base field's order using the
+Cocks-Pinch method.  
+TODO:  Is Cocks-Pinch too slow?
+If so, we might produce a zkSNARK proving that $φ$ and $φ*$ take
+some appropriate form, almost like some proof-of-possession. 
+
+We expect out initial setup for $φ$ and $φ*$ to be far too slow
+to construct the zkSNARK proof however, especially with roughly
+$log p \approx 1500$ additional work during setup.
+We might however find some simpler proof that an isogenies passed
+through enough steps, never backtracks, and should not be merely
+some scalar multiple of an isogeny known elsewhere.
+TODO:  What else?
 
 
 \section{Flexibility}
@@ -505,13 +590,13 @@ security concerns.
 
 In a similar vein, there exist threshold VDF constructions that
 provide security so long as {\it either} the VDF security assumptions
-hold, {\ir or} some threshold security assumption holds. 
+hold, {\it or} some threshold security assumption holds. 
 
 In an epoch, the $j$th contributor aka block producer encrypts
 threshold verifiable secret shares \cite{Schoenmakers99asimple} % Stadler96publiclyverifiable
 of some curve point $H_2(m_j)$ with designated VDF evaluators.
 At the end of the epoch, the $i$th VDF evaluator begins computing
-their share of the VDF  $φ* \sum_i \lamba_i H_2(m_i)$, where
+their share of the VDF  $φ* \sum_i \lambda_i H_2(m_i)$, where
 $\lambda_i = \Pi_{j \neq i} {j \over j-i}$ are the Lagrange coefficients.
 
 We dislike sharing secrets with distinguished parties for numerous
