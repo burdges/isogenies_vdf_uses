@@ -365,7 +365,7 @@ where $O = o G_1$ is the evaluator's public key and
 $φ_{1/2} : Y \to Z$ and $φ_{1/2}* : X \to Z$ are isogenies to
 some curve $Z$ part way along the path from $X$ to $Y$.
 We may verify the public key's correctness by checking
-$e_X(O, G_2) = e_Z(x, G_2)$ and verify the proofs correctness by
+$e_X(O, φ G_2) = e_Z(x, φ_{1/2} G_2)$ and verify the proof's correctness by
 checking
 $$ e_X( φ G_1, H_2(m) ) = e_Z( x, y ) = e_Y( G_1, φ* H_2(m) ) \mathperiod $$
 
@@ -375,6 +375,20 @@ half way towards $Z$ so that the attackers fastest evaluation
 becomes $y = φ_{1/2} φ_{1/2}* H_2(m)$.  In this, if $φ_{1/2}$ 
 still delays the attackers enough then our honest evaluator
 sounds safe.
+
+\smallskip
+
+In this vein, Justin Drake adapted Wesolowski VDF proof to provide
+a ``blind'' proof \cite{}, % https://ethresear.ch/t/blinded-vdfs-and-timelocks/5494
+that demonstrates having run the VDF without revealing the output.
+
+An isogeny VDF supports blind proofs using the same trick as proof
+ownership:  We set $x = o G_1$ and $y = o^{-1} φ* H_2(m)$
+where $O = o G_1$ is either a blinding factor.
+We verify the blind proof's correctness by checking
+$$ e_X( φ G_1, H_2(m) ) = e_Y( x, y ) \mathperiod $$ %  = e_Y( G_1, φ* H_2(m) )
+We could safely choose $O = o G_1$ to be the evaluator's public key,
+in which case we verify $e_X(O, φ G_2) = e_Y(x, G_2)$ as well.
 
 % Classical proof: (x₁, x₂, ...) = H(a,b)
 % Ownership proof: (x₁, x₂, ...) = VRF_o(a,b) ?= H(a | b | oH'(a|b) )
