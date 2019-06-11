@@ -480,39 +480,44 @@ We note $m_{0,u}$ may originate with some trusted source, which
 prevents some attacks on RSA time-lock puzzles, like Alice stealing
 rewards from an evaluator.
 
-\subsection{Time-lock VRFs aka VDRFs}
+\subsection{Private VDF}
 
-If $φ$ and $φ*$ are secret dual isogenies held by one party Alice,
-then our VDF output $φ* H_2(m)$ amounts to a BLS signature, with
-a secret isogeny $φ*$ replacing the secret scalar.  As noted
-elsewhere, this gives a quantum annoying VRF, which sounds useful.
+We believe the Caucus component of Fantomette \cite[\S5]{Fantomette}
+to be only currently published scheme that uses private VDF evaluation.
+We recommend against protocols like Fantomette because many concurrent
+private VDF evaluations incurs environmental costs.  At the same time,
+there are novel security properties obtainable through private VDF
+evaluation, and they remain dramatically cheaper than proof-of-work.
 
-We conjecture the map $m \mapsto φ* H_2(m)$ could simultaneously be
-both a VRF and a VDF.  This {\em verifiable delayed random function} 
-(VDRF) gives a time-lock VRF.  We believe the Caucus component of
-the Fantomette scheme \cite[\S5]{Fantomette} to be only currently
-published protocol that uses private VDF evaluations.
+We expect private VDF evaluations would run a VDF on a VRF output,
+like in Fantomette.  If however the running VDF really needed to
+be kept secret then the isogeny $φ*$ could be kept secret too.
 
-In principle, we could find find another pairing friendly curve
-whose group order is divisible by our base field's order using the
-Cocks-Pinch method.  
-TODO:  Is Cocks-Pinch too slow?
-If so, we might produce a zkSNARK proving that $φ$ and $φ*$ take
-some appropriate form, almost like some proof-of-possession. 
+As noted above, our VDF output $φ* H_2(m)$ amounts to a BLS signature,
+with a secret isogeny $φ*$ replacing the secret scalar.  So our map
+$m \mapsto φ* H_2(m)$ could simultaneously be both a private VDF as
+well as a VRF.  
 
-We expect out initial setup for $φ$ and $φ*$ to be far too slow
-to construct the zkSNARK proof however, especially with roughly
-$log p \approx 1500$ additional work during setup.
-We might however find some simpler proof that an isogenies passed
-through enough steps, never backtracks, and should not be merely
-some scalar multiple of an isogeny known elsewhere.
-TODO:  What else?
+A priori, {\em verifiable delayed random function} (VDRF) or time-lock
+VRF requires some heavy zkSNARK proving that $φ* : Y \to X$ incurs the
+required delay by being generated correctly, and the correctness of
+$X$, $Y$, $φ G_1$, and any intermediate curves revealed.  
+As our zkSNARK encodes arithmetic in the base field $\Z/p\Z$,
+it should operate in another pairing friendly curve whose group order
+is divisible by $p$, which makes arithmetic mod $p$ relatively efficient.
+We could obtain such curves using the Cocks-Pinch method, which appears
+feasible thanks to the running time being polynomial in $\log p$ \cite{ordinary_cocks_pinch}.
+% TODO:  Is this running time correct?  Find citation for supersingular case.
 
 
 \section{Flexibility}
 
 Isogeny VDFs inherit much of the extreme flexibility BLS signatures
 possess, mostly through the various BLS aggregation strategies.
+
+We caution that our isogeny being between supersingular elliptic
+curves makes the paring not of type III, which breaks assumptions
+like the Symmetric External Diffie-Hellman (SXDH) \cite{ordinary_cocks_pinch}.
 
 \subsection{Aggregated evaluation}
 
@@ -610,5 +615,8 @@ that isogenies VDFs enable trade offs unavailable with other VDF designs.
 
 TODO: RandHound vs RandHerd
 
+\bibliographystyle{alpha}
+\bibliography{isovdf}
 
 \end{document}
+
