@@ -94,7 +94,7 @@ FPGAs first anyways, so our development effort would therefore
 benefit other important cryptographic protocols:
  
 Recursive zkSNARKs need similarly sized pairing friendly fields at
-the 128 bit security level.  (TODO)
+the 128 bit security level.  (TODO: Citation)
 There remain diverse opinions on field sizes for pairning friendly
 curves for use even with non-recursive zkSNARKs, with some growing
 largish, but regardless prover and verifier time for zkSNARKs stand
@@ -303,25 +303,26 @@ the system's security.
 
 TODO: Comment on the RSA trusted setup proposed by Abhi Shelat at Ligero, as explained in ligeroRSA.pdf and  \url{https://www.youtube.com/watch?v=RwrJXO_ecRI&list=PLaM7G4Llrb7y075mVXGmSABDP9Nb_PsBq&index=7}
 
-Isogenies VDFs do require a nicersequential trusted setup because the
-distinguished starting curve admit more optimisations when evaluating
-isogenies:
+Isogenies VDFs require a trusted setup too because the distinguished
+starting curve admits more optimisations when evaluating isogenies:
 TODO: Luca please explain better.
 
-Our trusted setup produces a random walks through curve $E_i$ around
-the specified isogeny volcano.  Each participants producing a secret
-isogeny $φ_i : E_i \to E_{i+1}$ and publishes $E_{i+1}$ along with
-curve points $U,V \in E_i$ and $X,Y \in E_{i+1}$ such that
-$e_{E_i}(U,V) = e_{E_{i+1}}(X,Y)$.  
+In this trusted setup, we perform a random walks through curve $E_i$
+around the specified isogeny volcano.  In sequence, each participants
+producing a secret isogeny $φ_i : E_i \to E_{i+1}$ and publishes
+$E_{i+1}$ along with curve points $U,V \in E_i$ and $X,Y \in E_{i+1}$
+such that $e_{E_i}(U,V) = e_{E_{i+1}}(X,Y)$.  
 
 Anyone can verify the whole trusted setup by checking all these
 pairing equations.  We cannot aggregate these pairing computations
-when verifying, which makes verification time linear in the number
-of participants, but this sounds typical.
+in verification, due to working on different curves.  Yet, verification
+costs only two pairings per participants, which sounds typical.
 
-We could restart the trusted setup anytime, thereby expanding the
+There is no synchronous MPC in this trusted setup, meaning participants
+could join flexibly over an extended period of time.  We could even
+resume the trusted setup anytime in the future, thereby expanding the
 participant set.  After doing so, the VDF should be rerun to
-regenerate its paramaters.
+regenerate its paramaters of course.
 
 We further note that avoiding this trusted setup for isogeny starting
 curves remains an active research area independent of VDFs. 
