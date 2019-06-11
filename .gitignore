@@ -2,6 +2,7 @@
 *.aux
 *.log
 *.blg
+*.out
 *.synctex.gz
 
 *~
