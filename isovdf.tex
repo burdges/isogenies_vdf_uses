@@ -166,7 +166,7 @@ increases their overhead.
 Attackers who cannot keep these precomputations on the same chip remain
 limited to the memory bus speed, and hence the speed of light. 
 There remains a risk of attackers adding several independent busses to
-different memory blocks, but this sounds limited by space.
+different memory blocks, but this appears limited by space.
 
 We consider this extremely promising because industrial applications
 like machine learning also befit form FPGAs with high memory bandwidth.
@@ -316,7 +316,7 @@ such that $e_{E_i}(U,V) = e_{E_{i+1}}(X,Y)$.
 Anyone can verify the whole trusted setup by checking all these
 pairing equations.  We cannot aggregate these pairing computations
 in verification, due to working on different curves.  Yet, verification
-costs only two pairings per participants, which sounds typical.
+costs only two pairings per participant.
 
 There is no synchronous MPC in this trusted setup, meaning participants
 could join flexibly over an extended period of time.  We could even
@@ -373,8 +373,7 @@ An attacker could still produce a valid $y$ after evaluating only
 $φ_{1/2}* H_2(m)$.  We not  if $Z$ could lie much further than
 half way towards $Z$ so that the attackers fastest evaluation
 becomes $y = φ_{1/2} φ_{1/2}* H_2(m)$.  In this, if $φ_{1/2}$ 
-still delays the attackers enough then our honest evaluator
-sounds safe.
+still delays the attackers enough then our honest evaluator wins.
 
 \smallskip
 
@@ -429,8 +428,8 @@ Also, if we incentivise puzzle solving then our puzzle's creator can
 hijack the rewards.  
 
 We expect some advanced RSA trusted setup MPC would permit multiple
-parties to encrypt messages to an eventual decryption, but doing this
-sounds extremely complex.
+parties to encrypt messages to an eventual decryption, but doing 
+becomes extremely complex.
 
 Isogenies VDFs solve this problem far more elegantly though:
 We regard the VDF evaluation $φ* H_2(m)$ as an identity-based secret
