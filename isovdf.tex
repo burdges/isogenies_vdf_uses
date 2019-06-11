@@ -363,11 +363,18 @@ is only the output.  We therefore add a separate ownership proof
 consisting of $x = o φ_{1/2} G_1$ and $y = o^{-1} φ_{1/2}* H_2(m)$
 where $O = o G_1$ is the evaluator's public key and
 $φ_{1/2} : Y \to Z$ and $φ_{1/2}* : X \to Z$ are isogenies to
-the midpoint curve $Z$ half way between $X$ and $Y$.
+some curve $Z$ part way along the path from $X$ to $Y$.
 We may verify the public key's correctness by checking
 $e_X(O, G_2) = e_Z(x, G_2)$ and verify the proofs correctness by
 checking
-$$ e_X( φ G_1, H_2(m) ) = e_Z( φ_{1/2} G_1, H_2(m) ) = e_Y( G_1, φ_{1/2}* H_2(m) ) \mathperiod $$
+$$ e_X( φ G_1, H_2(m) ) = e_Z( x, y ) = e_Y( G_1, φ* H_2(m) ) \mathperiod $$
+
+An attacker could still produce a valid $y$ after evaluating only
+$φ_{1/2}* H_2(m)$.  We not  if $Z$ could lie much further than
+half way towards $Z$ so that the attackers fastest evaluation
+becomes $y = φ_{1/2} φ_{1/2}* H_2(m)$.  In this, if $φ_{1/2}$ 
+still delays the attackers enough then our honest evaluator
+sounds safe.
 
 % Classical proof: (x₁, x₂, ...) = H(a,b)
 % Ownership proof: (x₁, x₂, ...) = VRF_o(a,b) ?= H(a | b | oH'(a|b) )
