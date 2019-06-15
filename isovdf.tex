@@ -465,10 +465,28 @@ protocols, which mostly depend upon threshold secret sharing.
 As above, all participants simply encrypt their bid or vote to our
 eventual VDF evaluation $φ* H_2(m)$.  
 
-In the voting case, we easily obtain a secret balot using standard
-techniques, like authenticating voters when their votes enter some
-mixing service, or zero-knowledge proofs over Merkle trees, or
-blind signature constructions, like rerandomizable certificates.
+In the auction case, we begin the auction when the VDF input $m$
+becomes available, and end the auction before any VDF evaluator
+computes $φ* H_2(m)$.  All bidders encrypt bids to $φ* H_2(m)$ as
+above, so that all bids are revealed by the VDF evaluator computing
+$φ* H_2(m)$.  Any logic may be applied to the decrypted bids,
+which makes vicary auctions possible in particular.
+
+We operate similarly in the voting case, except we achieve a secret
+balot using relatively simple techniques like a reencryption mix net
+or other mixing service.  We authenticate voters only when they submit
+votes, which reduces or avoids zero-knowledge proof complexity.
+
+We could support weighted votes privately using almost any techniques
+adapted to the underlying ecosystem.  As an example, if vote valuations
+are stored using homomorphic commitments, like in Zether or QuisQuis,
+then we merely encrypt several votes values that sum to the commitment.
+
+We might reduce the mixing service's importance if the underlying
+ecosystem supports more advanced privacy features like zero-knowledge
+proofs over Merkle trees, or blind signature constructions, like
+rerandomizable certificates (Coconut \cite{Coconut}).
+We do still benefit from simpler zero-knowledge circuits however.
 
 % e_X ( u φ G_1, H_2(m) ) = s = e_Y ( u G_1, φ* H_2(m) )
 % pk: uG
