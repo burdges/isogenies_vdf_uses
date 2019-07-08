@@ -7,6 +7,15 @@
 \usepackage{amsmath,amsthm,amsfonts}
 \usepackage{unicode}
 \usepackage{hyperref}
+\hypersetup{
+	unicode=true,
+	colorlinks=true,
+	citecolor=blue!70!black,
+	filecolor=black,
+	linkcolor=red!70!black,
+	urlcolor=blue,
+	pdfstartview={FitH},
+}
 
 
 \newtheorem*{rawnamedtheorem}{\therawnamedtheorem}
@@ -21,6 +30,14 @@
 \newcommand\mathcomma{,}
 
 
+\DeclareMathOperator{\Gen}{\mathsf{Gen}}
+\DeclareMathOperator{\Eval}{\mathsf{Eval}}
+\DeclareMathOperator{\Verif}{\mathsf{Verif}}
+\DeclareMathOperator{\ek}{\mathsf{ek}}
+\DeclareMathOperator{\vk}{\mathsf{vk}}
+\DeclareMathOperator{\poly}{\mathsf{poly}}
+\DeclareMathOperator{\polylog}{\mathsf{polylog}}
+
 \title{Why VDFs from isogenies are so cool}
 \author{Jeff, Luca}
 \date{}
@@ -30,32 +47,178 @@
 \maketitle
 
 \begin{abstract}
-We make a compelling argument for 
+  Verfiable Delay Functions are a relatively new cryptographic
+  construction, popular in the cryptocurrency space. Only a handful of
+  constructions is known, and among those isogeny-based ones are the
+  youngest.
 
-We believe that both algorithmic and hardware optimisations for an
-isogeny VDF yield wide ranging benefits that go far beyond improving
-RSA speeds.
+  The aim of this document is to highlight some unique features of
+  isogeny VDFs that may make them preferable over competitors, in some
+  instances.
 
+  We believe that both algorithmic and hardware optimisations for an
+  isogeny VDF yield wide ranging benefits that go far beyond improving
+  RSA speeds.
 \end{abstract}
 
 \section{Intro}
 
+A Verifiable Delay Function (VDF) is a function $f:X→Y$ from some
+space $X$ to some space $Y$ such that, given a random input $x∈X$, it
+is ``slow'' to evaluate $f(x)$, whereas for any $(x,y)∈X×Y$ verifying
+that $f(x)=y$ can be done ``fast''.
 
-- Isogenies vs RSA
-- Isogenies vs Class groups
-- Isogenies vs the rest
+At first blush\footnote{At least 50\% of the authors of this note have
+  thought this on first seeing the definition.} this may look similar
+to the definition of the NP complexity class, however an important
+requirement for VDFs is that evaluation takes a set amount $T$ of
+\emph{sequential} time, i.e., that with high probability computing
+$f(x)$ takes $T$ ``elementary steps'', regardless of the amount of
+parallel processors the evaluator has at its disposal. This makes
+designing good VDFs somewhat hard, and explains why only a handful of
+constructions is known.
+
+Formally, a VDF is a family of functions determined by two parameters:
+\begin{itemize}
+\item A \emph{security parameter} $λ$, e.g., $\lambda=128$;
+\item A \emph{delay parameter} $T$, independent%
+  \footnote{Formally, it is required that $T\in o(2^\lambda)$ for the
+    security definitions to make sense. %
+    In practice, $T$ will be bounded by a value to be determined
+    through applied cryptanalysis, however this value will typically
+    be large enough that it is irrelevant in applications.} from
+  $\lambda$.
+\end{itemize}
+Given $\lambda$ and $T$, the functions are determined by three
+algorithms:
+\begin{enumerate}
+\item A \emph{parameter generation} routine $\Gen(λ,T)→(\ek,\vk)$,
+  that takes as inputs $\lambda$ and (optionally) $T$, and returns a
+  pair of \emph{public parameters} called the \emph{evaluation} and
+  \emph{verification} key. %
+  The keys define, among other things, the input and output sets
+  $X,Y$.
+
+  $\Gen$ is required to run in $\poly(2^λ)$, but some
+  authors~\cite{cryptoeprint:2019:166} relax this to
+  $\poly(2^λ,T)$. It is permissible for $\Gen$ to use a \emph{common
+    reference string} or a \emph{trusted setup}.
+\item An \emph{evaluation} routine $\Eval(\ek,x)→(y,π)$ that takes as
+  input the evaluation key and an input $x∈X$, and outputs $y=f(x)$
+  and a (possibly empty) \emph{proof} $π$ that pass verification (see
+  next item).
+
+  $\Eval$ must run in \emph{sequential time} approximately $T$; the
+  probability that $\Eval$ outputs a valid pair $(y,π)$ in
+  \emph{parallel time} less than $T$ must be negligible.
+\item A \emph{verification} routine $\Verif(\vk,x,y,π)→\{0,1\}$ that
+  takes as input the verification key, an input $x∈X$, an output $y∈Y$
+  and a (possibly empty) proof $π$, and outputs $1$ only if
+  $y=f(x)$.
+
+  $\Verif$ must run in time $\poly(2^λ)$.
+\end{enumerate}
+
+We refer
+to~\cite{Boneh,Wesolowski,Pietrzak,survey,cryptoeprint:2019:166} for
+the formal security definitions. %
+Here, we are chiefly interested in the practical aspects of VDFs, with
+a view towards real-world deployments of isogeny-based VDFs.
+
+\paragraph{Applications of VDFs}
+To better understand the design choices and constraints of VDFs, it is
+useful to have a picture of what they may be used for. %
+
+A basic example is a \emph{distributed lottery}, where a set of
+mutually distrusting participants want to agree on a common random
+winning ticket, in such a way that none of the participants can
+influence the output in its favor. %
+A solution involving a VDF is the following: in a \emph{ballot
+  casting} phase, the participants submit \emph{ballots}
+$a_1,\ldots,a_n$ of their own choice; when this first phase is
+complete, all the ballots are combined using a hash function
+$H(a_1,\dots,a_n) = x\in X$, then the winning ticket is determined by
+the value $y = \Eval(\ek,x)$ output by the VDF. %
+The winning ticket can be computed by a single participant, who then
+publishes it; once the winning ticket is known, everyone can then
+verify it by running the VDF verification routine.
+
+A malicious participant wishing to influence the lottery may wait for
+all other participants to submit their ballots, say
+$a_1,\dots,a_{n-1}$, then try many different values for $a_n$ until he
+finds one that makes him win. %
+The role of the VDF is to prevent such an attack: if the VDF is set up
+so that $\Eval$ runs for \emph{considerably longer} than the duration
+of the ballot casting phase, the malicious participant will not have
+time to try different values for its ballot $a_n$, and will thus not
+be able to influence the lottery outcome.
+
+TODO: Jeff, does this example capture all you want to say, or do you
+want to give a more detailed one?
+
+Realistically, the ballot casting phase could last one to several
+minutes. %
+It is clear that, in order to appropriately determine the VDF
+parameters, one must have detailed figures for the speed of the
+$\Eval$ procedure, not only in software, but also on dedicated
+hardware. %
+This where the \emph{sequentiality} requirement plays a role: by
+postulating that $\Eval$ cannot be run more efficiently than by
+executing $T$ \emph{elementary steps} in sequence, the security
+analysis is reduced to evaluating the speed of the fastest design
+achievable for one step (given assumptions on the limits of chip
+manufacturing technology, and on the resources that the dishonest
+participant is willing to spend). %
+We will discuss sequentiality in depth in
+Section~\ref{sec:performance}.
+
+\paragraph{VDF candidates based on groups of unknown order}
+Only a handful of candidate VDF constructions do exist. %
+We briefly describe here the two most popular designs, based on
+repeated squaring in groups of unknown
+order~\cite{Wesolowski,Pietrzak}, as they represent the benchmark to
+beat; for older proposals, see~\cite{Boneh}.
+
+TODO
+
+\paragraph{VDF candidate from isogenies of supersingular curves}
+The latest candidate VDF is based on chained evaluations of degree $2$
+isogenies of supersingular curves~\cite{cryptoeprint:2019:166}. %
+The goal of this document is to compare it to previous VDF proposals,
+and highlight the features that may give it an edge over its
+competitors.
+
+TODO
 
 
 
+\section{Performance of $\Eval$ and sequentiality}
+\label{sec:performance}
 
+We start by discussing the sequentiality claims of the previously
+mentioned VDFs. %
 
-\section{Performance}
+Informally, sequentiality states that $\Eval$ is composed of $T$
+\emph{elementary steps} in sequence, and that no computer design is
+capable of computing the output of $\Eval$ faster than by computing
+the $T$ steps in sequence. %
+Formally stating sequentiality requires fixing a computational model
+(e.g., parallel Turing machines, Boolean circuits, \dots), but this is
+problematic because different models can produce different answers. %
+We stress that sequentiality is only a security assumption, like the
+hardness of factoring or that of computing discrete logarithms, and it
+can only be trusted on the basis of repeated cryptanlytic efforts.
 
-As a security assumption, we know some bound $A$ such that if the
-fastest honest evaluator can evaluate our VDF in time $T$ then no
-adversary can evaluate our VDF in time $T/A$.  
-We always have some lower bound on $T/A$ in practice, so smaller
-$A$ makes evaluating the VDF cheaper.
+Pragmatically, the sequential character of a candidate is determined
+through applied cryptanalysis: investing in hardware and software
+design to produce the most efficient implementation of $\Eval$, given
+current knowledge, and use the results as a basis for setting
+parameters. %
+The result can be expressed as a conjectural bound $A$, such that if
+the fastest honest evaluator can evaluate the VDF in time $T$ then no
+adversary can evaluate our VDF in time $T/A$.  We always have some
+lower bound on $T/A$ in practice, so smaller $A$ makes evaluating the
+VDF cheaper.
 
 We choose VDF designs to create a cost divide among performance
 optimisations.  We want some reasonable optimisations to have
@@ -100,7 +263,7 @@ curves for use even with non-recursive zkSNARKs, with some growing
 largish, but regardless prover and verifier time for zkSNARKs stand
 to benefit even over conventionally sized fields.  
 
-Isogenies-based key exchanges like CSIDH \cite{CSIDH} need somewhat
+Isogenies-based key exchanges like CSIDH \cite{10.1007/978-3-030-03332-3_15} need somewhat
 smaller fields.  CSIDH supports authentication and long-term public
 keys better than lattice-based key exchanges. 
 Also, there are low-latency circuit-based anonymity protocols like Tor,
@@ -158,7 +321,7 @@ TODO:  Memory bandwidth estimates?  Where?
 In principle, an attacker might recompute these coefficients just in
 time.  Yet, these precomputations have greater circuit depth, requiring
 $O(T \log p)$ time as opposed to the $O(T)$ required for VDF evaluation
-\cite[pp. 21]{IsogeniesVDF}.  At present \cite[pp. 15]{IsogeniesVDF} 
+\cite[pp. 21]{cryptoeprint:2019:166}.  At present \cite[pp. 15]{cryptoeprint:2019:166} 
 suggest $\log p \approx 1500$, but this can easily be increased.
 An attacker must also do this computation in parallel, which further
 increases their overhead.
@@ -235,7 +398,7 @@ Initially, the vulnerable paramaters would usually differ from the
 paramaters used by our VDF, which translates into time to replace
 the VDF paramaters, if appropriate.  
 
-As above, we observe that CSIDH \cite{CSIDH} benefits enormously from
+As above, we observe that CSIDH \cite{10.1007/978-3-030-03332-3_15} benefits enormously from
 improving Velu's formulas, which translates into faster post-quantum
 authentication and anonymous routing, and maybe post-quantum signatures.
 
@@ -655,7 +818,7 @@ that isogenies VDFs enable trade offs unavailable with other VDF designs.
 TODO: RandHound vs RandHerd
 
 \bibliographystyle{alpha}
-\bibliography{isovdf}
+\bibliography{isovdf,isogenies_bib/isogenies}
 
 \end{document}
 
