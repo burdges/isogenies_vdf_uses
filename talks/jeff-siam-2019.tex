@@ -107,7 +107,7 @@ Anonymous receivers matter: \\
 
 \bigskip\pause
 
-Idea:  Reuse $\mathrm{pk}$!
+{\bf Idea:}  Keep $\mathrm{pk}$ small and reuse it..
 
 \begin{align*}
 \mathrm{SURB} \approx \mathrm{pk} + 5\,\mathrm{hops} * (16\, \mathrm{nodeid} + 16\,\mathrm{MAC} + 1) 
@@ -183,7 +183,7 @@ Ward Beullens, Thorsten Kleinjung, and Frederik Vercauteren \\
 
 \begin{frame}{Mix network PKI: Too many public keys!}
 
-\sout{Identity} Index-based encryption:
+\sout{Identity} Index-based encryption DKG:
 $i$th node ``broadcasts''
 \begin{itemize}
 \item their public key $A_i = a_i G_1$, 
@@ -200,7 +200,7 @@ $$ e(u A,H(j)) = e(u G_1,S_j) $$
 
 \medskip
 
-{\bf Question:}  Any ideas for isogenies based IBE?
+{\bf Question:}  Any ideas for isogenies based IBE + DKG?
 
 \end{frame}
 
