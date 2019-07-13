@@ -227,11 +227,15 @@ often also signature scheme ala RSA-FDH, BLS, hash-based, etc.
 
 \medskip
 
-Input $x$ must be collaboratively generated after the public key!  (Ouroboros Praos)
+Input $x$ must be collaborative random value generated after $\mathrm{pk}$!
 
 \medskip
 
-Applications often require only that some $x$ work.
+\hspace{30pt} But $x$ can be biased!  (Ouroboros Praos)
+
+\bigskip
+
+Lottery applications require only that some $x$ work.
 
 \bigskip
 \bigskip
@@ -255,7 +259,7 @@ Applications often require only that some $x$ work.
 Assumes some bound on $T_O/T_S$ where
 \begin{itemize}
 \item $T_O$ is the running time of public, readily available, and inexpensive implementations of $\mathrm{VRFProve}$, and \\
-\item $T_S$ is the running time of secret or proprietary implementations of $x \mapsto y$.
+\item $T_S$ is the running time of expensive secret/proprietary implementations of $x \mapsto y$.
 \end{itemize}
 
 \bigskip
