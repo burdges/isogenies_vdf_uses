@@ -102,12 +102,12 @@ Anonymous receivers matter: \\
 \mathrm{traffic} &\approx 2 * (5\,\mathrm{hops} + 1) * 20\,\mathrm{cover} * \mathrm{packet} \\
 \mathrm{maintenance} &\approx 20\,\mathrm{usage} * (5\,\mathrm{hops} + 1) *  \mathrm{SURB} \\
 \mathrm{overhead} &= \mathrm{traffic} + \mathrm{maintenance} \\
- &\approx 3000 * (\mathrm{pk} + \cdots)^2 + \cdots \quad\textrm{per real message}
+ &\approx 3000 * \mathrm{pk} + \cdots \quad\textrm{per real message}
 \end{align*}
 
 \bigskip\pause
 
-Can $\mathrm{pk} \approx 0$?  Well..
+Idea:  Reuse $\mathrm{pk}$!
 
 \begin{align*}
 \mathrm{SURB} \approx \mathrm{pk} + 5\,\mathrm{hops} * (16\, \mathrm{nodeid} + 16\,\mathrm{MAC} + 1) 
