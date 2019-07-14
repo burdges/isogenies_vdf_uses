@@ -133,6 +133,13 @@ A Sphinx header is a tuple $(\alpha,\beta,\gamma)$ where \\
 \end{frame}
 
 
+\begin{frame}{Hybrid Key Exchange}
+
+TODO
+
+\end{frame}
+
+
 \begin{frame}[t]{Sphinx packet format}
 Aim: Post-quantum key exchanges with
 \begin{itemize}
@@ -302,9 +309,9 @@ Luca De Feo, Simon Masson, Christophe Petit, and Antonio Sanso. \\
 \begin{frame}[t]{Parallel time-lock puzzles}
 \vspace{-20pt}
 \begin{align*}
-\mathrm{VRFEncrypt}_x &: \mathtt{msg} \mapsto \bigl( U,E_s(\mathtt{msg}) \bigr) 
+\mathrm{VDFEncrypt}_x &: \mathtt{msg} \mapsto \bigl( U,E_s(\mathtt{msg}) \bigr) 
 \quad\textrm{after $\seed$ but before $T_S$} \\
-\mathrm{VRFDecrypt}_y &: \bigl( U,E_s(\mathtt{msg}) \bigr) \mapsto \mathtt{msg}
+\mathrm{VDFDecrypt}_y &: \bigl( U,E_s(\mathtt{msg}) \bigr) \mapsto \mathtt{msg}
 \quad\textrm{after $T_O$}
 \end{align*}
 
