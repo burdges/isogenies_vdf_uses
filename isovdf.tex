@@ -404,36 +404,64 @@ authentication and anonymous routing, and maybe post-quantum signatures.
 
 \subsection{Quantum annoyance}
 
+Any RSA scheme including an RSA based VDF is almost instantly broken
+by a quantum computer. 
+
 We say a signature scheme, VRF, or VDF is {\em quantum annoying} if
 an adversary with a quantum computer can forge signatures, compute
-outputs without the public key, or compute outputs very quickly,
-but they must utilize the quantum computer for each separate attack.
+outputs without the public key, or compute outputs very quickly
+(respectively), but they must utilize the quantum computer for each
+separate forgery or fast evaluation attack.
 In other words, a quantum computer cannot break the public key or
 paramaters once to provide information with which these attacks can
 be run on a classical computer. 
 
-As implemented, the class group VDF design is quantum annoying because
-new class groups with different orders get constructed for each input.
+As implemented, the class group VDF design appears quantum annoying
+because each input yields a new class group with a different order.
+There is currently no known algorithm for determining many unknown
+group orders in a single batch computation or with an extensive
+pre-compute, but such algorithms remain under explored.  We thus
+have only a low confidence that the class group VDF is quantum annoying.
 
 There is a VRF and signature scheme similar to our VDF in which the
 isogeny $φ$ gets kept secret, and runs quickly, and the public key
 is the curve $X$ and $φ G_1$.  Now our output $\sigma = φ* H_2(m)$
 acts as signature and the verification equation is 
 $$ e_X( φ G_1, H_2(m) ) = e_Y( G_1, \sigma ) \mathperiod $$
+These schemes, and our VDF, are not post quantum because the
+quantum computer can easily compute $u$ such that $u G_2 = H_2(m)$.
 
-Now our isogenies-based VDF construction and this VRF and signature
-scheme are quantum annoying because the adversary cannot break the
-isogeny itself from merely $φ$, but can find a discrete log for each
-input point $H_2(m)$.
+In principle, this VRF and signature scheme might be quantum annoying
+because our quantum adversary cannot determine the isogeny itself
+from merely $X$, $Y$, and many $\sigma$ however, only can find the
+discrete log for each input point $H_2(m)$.
 
-There are some properties of BLS signatures that carry over to this
-quantum annoying VRF like distinct message aggregation.  
-Its signatures are far smaller than any known post-quantum signature
-scheme, while also providing competitive verifier performance.  
-We think quantum annoyance could provide an important stepping stone
+If so, there are handy properties of BLS signatures that carry over
+to this VRF, like distinct message aggregation, but not other
+aggregation strategies.  Also signatures are far smaller than any
+known post-quantum signature scheme, while also providing competitive
+verifier performance.  
+
+There even remains a chance that quantum annoyance might hold for
+our isogenies-based VDF construction.
+
+We caution however that all these isogenies constructions using
+pairings appear vulnerable to quantum pre-compute attacks, especially
+in the vein of quantum analogs of batch number field sieve schemes.  
+% Daniel J. Bernstein, Tanja Lange. "Batch NFS." Pages 38–58 in Selected areas in cryptography—SAC 2014—21st international conference, Montreal, QC, Canada, August 14–15, 2014, revised selected papers, edited by Antoine Joux, Amr M. Youssef. Lecture Notes in Computer Science 8781, Springer, 2014. ISBN 978-3-319-13050-7.  https://cr.yp.to/papers.html#batchnfs
+
+These precompute attacks would remain expensive in both quantum and
+classical computation, like say reducing the classical security
+paramater from 128 to 80 bits and making the algorithm parallel. 
+In other words, we do not expect quantum annoyance for our preferred
+classical paramater choices, but they do not make us a soft target
+and they admit some quantum annoying paramater choices, 
+unlike an RSA VDF.
+
+We think quantum annoyance could provide a convenient stepping stone
 while the threat from quantum computers increases.  In particular,
-there are many consensus protocols in which VRFs run frequently and
-quickly, thus increasing the confidence derived from quantum annoyance.  
+there are many consensus protocols in which VRFs or VDFs run frequently
+and quickly, thus increasing the confidence derived from quantum annoyance.  
 
 We note that deterministic hash-based signatures like Sphincs should
 give fully post-quantum VRFs, but their extreme size makes them
