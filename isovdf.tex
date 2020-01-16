@@ -269,16 +269,16 @@ prime fields, or even full isogeny calculations.  We must target
 FPGAs first anyways, so our development effort would therefore
 benefit other important cryptographic protocols:
  
-Recursive zkSNARKs need similarly sized pairing friendly fields at
-the 128 bit security level.  (TODO: Citation)
+Recursive zkSNARKs need rather considerably smaller but still rather
+large pairing friendly fields at the 128 bit security level. 
 There remain diverse opinions on field sizes for pairning friendly
 curves for use even with non-recursive zkSNARKs, with some growing
 largish, but regardless prover and verifier time for zkSNARKs stand
 to benefit even over conventionally sized fields.  
 
-Isogenies-based key exchanges like CSIDH \cite{10.1007/978-3-030-03332-3_15} need somewhat
-smaller fields.  CSIDH supports authentication and long-term public
-keys better than lattice-based key exchanges. 
+Isogenies-based key exchanges like CSIDH \cite{10.1007/978-3-030-03332-3_15}
+need somewhat smaller fields.  CSIDH supports authentication and
+long-term public keys better than lattice-based key exchanges. 
 Also, there are low-latency circuit-based anonymity protocols like Tor,
 for which lattice-based key exchange provide post-quantum security,
 but such protocols are vulnerable to correlation attacks. 
