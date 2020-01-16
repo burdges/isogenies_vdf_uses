@@ -79,81 +79,94 @@ parallel processors the evaluator has at its disposal.  This makes
 designing good VDFs somewhat hard, and explains why only a handful of
 constructions is known.
 
-Formally, a VDF is a family of functions determined by two parameters:
-\begin{itemize}
-\item A \emph{security parameter} $λ$, e.g., $λ=128$;
-\item A \emph{delay parameter} $T$, independent%
-  \footnote{Formally, it is required that $T\in o(2^λ)$ for the
-    security definitions to make sense. %
-    In practice, $T$ will be bounded by a value to be determined
-    through applied cryptanalysis, however this value will typically
-    be large enough that it is irrelevant in applications.} from $λ$.
-\end{itemize}
-Given $λ$ and $T$, the functions are determined by three algorithms:
+Formally, a VDF is a family of functions characterised by three
+parameters:
+a \emph{security parameter} $λ$, e.g., $λ=128$,
+a \emph{delay time parameter} $T$, and
+an \emph{adversary advantage bound} $A$. 
+We expect $T$ and $A$ to be independent%
+\footnote{Formally, it is required that $T\in o(2^λ)$ for the
+security definitions to make sense. %
+In practice, $T$ will be bounded by a value to be determined
+through applied cryptanalysis, however this value will typically
+be large enough that it is irrelevant in applications.} from $λ$,
+but not from one another.
+
+Our VDF is determined by three algorithms:
 \begin{enumerate}
-\item A \emph{parameter generation} routine $\Gen(λ,T)→(\ek,\vk)$,
-  that takes as inputs $λ$ and (optionally) $T$, and returns a
-  pair of \emph{public parameters} called the \emph{evaluation} and
-  \emph{verification} key. %
+\item A \emph{parameter generation} scheme $\Gen(λ,T)→(\ek,\vk,A)$,
+  that takes as inputs $λ$ and $T$, and returns a pair of
+  \emph{public parameters} called the \emph{evaluation} and
+  \emph{verification} key, and the bound on adversaries' advantage. 
   The keys define, among other things, the input and output sets
   $X,Y$.
 
-  $\Gen$ is required to run in $\poly(2^λ)$, but some
+  $\Gen$ runs in time $\poly(λ)$, but some
   authors~\cite{cryptoeprint:2019:166} relax this to
-  $\poly(2^λ,T)$. It is permissible for $\Gen$ to use a \emph{common
-    reference string} or a \emph{trusted setup}.
-\item An \emph{evaluation} routine $\Eval(\ek,x)→(y,π)$ that takes as
-  input the evaluation key and an input $x ∈ X$, and outputs $y=f(x)$
-  and a (possibly empty) \emph{proof} $π$ that pass verification (see
-  next item).
+  $\poly(λ,T)$.  
+  Also $\Gen$ can be a \emph{trusted setup} protocol that
+  depends upon one of many parties being honest.  
 
-  $\Eval$ must run in \emph{sequential time} approximately $T$; the
-  probability that $\Eval$ outputs a valid pair $(y,π)$ in
-  \emph{parallel time} less than $T$ must be negligible.
+\item An \emph{evaluation} routine $\Eval(\ek,x)→(y,π)$ that takes as
+  input the evaluation key and the input $x ∈ X$, and outputs $y ∈ Y$
+  and a (possibly empty) \emph{proof} $π$ for the verification routine.
+
+  $\Eval$ should run in \emph{sequential time} bounded by $T$. 
+
+  We assume adversaries have ``poor'' odds to find a valid $y$
+  such that $(y,\cdot) = \Eval(\ek,x)$ in \emph{parallel time} less
+  than $T/A$.
+  We cannot formally ask that adversaries have only negligible odds
+  here because residue number systems give an unbounded $A$ for an
+  exponential increase in parallelism in somewhat plausible 
+  computational models \cite{BernsteinSorenson07}.
+  % https://twitter.com/hashbreaker/status/1131192651338829825
+
 \item A \emph{verification} routine $\Verif(\vk,x,y,π)→\{0,1\}$ that
   takes as input the verification key, an input $x ∈ X$, an
   output $y ∈ Y$ and a (possibly empty) proof $π$, and outputs $1$
-  only if $y=f(x)$.
+  if $(y,\cdot) = \Eval(\ek,x)$, except for odds negligible in $λ$.
 
-  $\Verif$ must run in time $\poly(2^λ)$.
+  We require $\Verif(\vk,x,y',π) = 0$, except for odds negligible
+  in $λ$, whenever $(y,\cdot) = \Eval(\ek,x)$ for some $y \ne y'$,
+  which nearly requires $\Eval$ project to a function. 
+
+  $\Verif$ must run in time $\poly(λ)$.
 \end{enumerate}
 
 We refer
 to~\cite{Boneh,Wesolowski,Pietrzak,survey,cryptoeprint:2019:166} for
-the formal security definitions. %
+various formal security definitions. %
 Here, we are chiefly interested in the practical aspects of VDFs, with
 a view towards real-world deployments of isogeny-based VDFs.
 
 \paragraph{Applications of VDFs}
-To better understand the design choices and constraints of VDFs, it is
-useful to have a picture of what they may be used for. %
+To better understand the design choices and constraints of VDFs, 
+it is useful to have a picture of what they may be used for. %
 
 A basic example is a \emph{distributed lottery}, where a set of
 mutually distrusting participants want to agree on a common random
 winning ticket, in such a way that none of the participants can
 influence the output in its favor. %
-A solution involving a VDF is the following: in a \emph{ballot
-  casting} phase, the participants submit \emph{ballots}
-$a_1,\ldots,a_n$ of their own choice; when this first phase is
-complete, all the ballots are combined using a hash function
-$H(a_1,\dots,a_n) = x ∈ X$, then the winning ticket is determined by
-the value $y = \Eval(\ek,x)$ output by the VDF. %
+A solution involving a VDF is the following: 
+in a \emph{ballot casting} phase, the participants submit
+\emph{ballots} $a_1,\ldots,a_n$ of their own choice; 
+when this first phase is complete, all the ballots are combined using
+a hash function $H(a_1,\dots,a_n) = x ∈ X$, then the winning ticket
+is determined by the value $y = \Eval(\ek,x)$ output by the VDF. %
 The winning ticket can be computed by a single participant, who then
 publishes it; once the winning ticket is known, everyone can then
 verify it by running the VDF verification routine.
 
-A malicious participant wishing to influence the lottery may wait for
-all other participants to submit their ballots, say
-$a_1,\dots,a_{n-1}$, then try many different values for $a_n$ until he
-finds one that makes him win. %
-The role of the VDF is to prevent such an attack: if the VDF is set up
-so that $\Eval$ runs for \emph{considerably longer} than the duration
-of the ballot casting phase, the malicious participant will not have
-time to try different values for its ballot $a_n$, and will thus not
-be able to influence the lottery outcome.
-
-TODO: Jeff, does this example capture all you want to say, or do you
-want to give a more detailed one?
+A malicious participant wishing to influence the lottery may wait
+for all other participants to submit their ballots, say
+$a_1,\dots,a_{n-1}$, then try many different values for $a_n$ until
+he finds one that makes him win. %
+The role of a VDF is to prevent this attack:  if our VDF is set up
+so that $T/A$ exceeds the duration of the ballot casting phase,
+then malicious participants do not have enough time to try multiple
+values for its ballot $a_n$, and will therefore not be able to
+influence the lottery outcome.
 
 Realistically, the ballot casting phase could last one to several
 minutes. %
@@ -198,26 +211,27 @@ We start by discussing the sequentiality claims of the previously
 mentioned VDFs. %
 
 Informally, sequentiality states that $\Eval$ is composed of $T$
-\emph{elementary steps} in sequence, and that no computer design is
-capable of computing the output of $\Eval$ faster than by computing
-the $T$ steps in sequence. %
-Formally stating sequentiality requires fixing a computational model
-(e.g., parallel Turing machines, Boolean circuits, \dots), but this is
-problematic because different models can produce different answers. %
+\emph{elementary steps} in sequence, and that realistic computer 
+designs cannot compute the output faster than by computing $T/A$
+steps in sequence. %
+
+Formally, sequentiality requires fixing a computational model
+(e.g., parallel Turing machines, Boolean circuits, \dots), but this
+is problematic since different models can produce different answers. 
 We stress that sequentiality is only a security assumption, like the
-hardness of factoring or that of computing discrete logarithms, and it
+hardness of factoring or that of computing discrete logarithms, and
 can only be trusted on the basis of repeated cryptanlytic efforts.
 
 Pragmatically, the sequential character of a candidate is determined
 through applied cryptanalysis: investing in hardware and software
-design to produce the most efficient implementation of $\Eval$, given
-current knowledge, and use the results as a basis for setting
+design to produce the most efficient implementation of $\Eval$,
+given current knowledge, and use the results as a basis for setting
 parameters. %
-The result can be expressed as a conjectural bound $A$, such that if
-the fastest honest evaluator can evaluate the VDF in time $T$ then no
-adversary can evaluate our VDF in time $T/A$.  We always have some
-lower bound on $T/A$ in practice, so smaller $A$ makes evaluating the
-VDF cheaper.
+The result can be expressed as the conjectural bound $A$, such that
+if the fastest honest evaluator can evaluate the VDF in time $T$ then
+no adversary can evaluate our VDF in time $T/A$.  We always have some
+lower bound on $T/A$ in practice, so a smaller $A$ makes evaluating
+the VDF cheaper.
 
 We choose VDF designs to create a cost divide among performance
 optimisations.  We want some reasonable optimisations to have
