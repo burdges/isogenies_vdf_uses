@@ -39,7 +39,7 @@
 \DeclareMathOperator{\polylog}{\mathsf{polylog}}
 
 \title{Why VDFs from isogenies are so cool}
-\author{Jeff, Luca}
+\author{Jeffrey Burdges, Luca de Feo}
 \date{}
 
 \begin{document}
@@ -60,6 +60,7 @@
   isogeny VDF yield wide ranging benefits that go far beyond improving
   RSA speeds.
 \end{abstract}
+
 
 \section{Intro}
 
@@ -102,7 +103,7 @@ Given $λ$ and $T$, the functions are determined by three algorithms:
   $\poly(2^λ,T)$. It is permissible for $\Gen$ to use a \emph{common
     reference string} or a \emph{trusted setup}.
 \item An \emph{evaluation} routine $\Eval(\ek,x)→(y,π)$ that takes as
-  input the evaluation key and an input $x∈X$, and outputs $y=f(x)$
+  input the evaluation key and an input $x ∈ X$, and outputs $y=f(x)$
   and a (possibly empty) \emph{proof} $π$ that pass verification (see
   next item).
 
@@ -110,9 +111,9 @@ Given $λ$ and $T$, the functions are determined by three algorithms:
   probability that $\Eval$ outputs a valid pair $(y,π)$ in
   \emph{parallel time} less than $T$ must be negligible.
 \item A \emph{verification} routine $\Verif(\vk,x,y,π)→\{0,1\}$ that
-  takes as input the verification key, an input $x∈X$, an output $y∈Y$
-  and a (possibly empty) proof $π$, and outputs $1$ only if
-  $y=f(x)$.
+  takes as input the verification key, an input $x ∈ X$, an
+  output $y ∈ Y$ and a (possibly empty) proof $π$, and outputs $1$
+  only if $y=f(x)$.
 
   $\Verif$ must run in time $\poly(2^λ)$.
 \end{enumerate}
@@ -135,7 +136,7 @@ A solution involving a VDF is the following: in a \emph{ballot
   casting} phase, the participants submit \emph{ballots}
 $a_1,\ldots,a_n$ of their own choice; when this first phase is
 complete, all the ballots are combined using a hash function
-$H(a_1,\dots,a_n) = x\in X$, then the winning ticket is determined by
+$H(a_1,\dots,a_n) = x ∈ X$, then the winning ticket is determined by
 the value $y = \Eval(\ek,x)$ output by the VDF. %
 The winning ticket can be computed by a single participant, who then
 publishes it; once the winning ticket is known, everyone can then
@@ -500,7 +501,7 @@ TODO: Luca please explain better.
 In this trusted setup, we perform a random walks through curve $E_i$
 around the specified isogeny volcano.  In sequence, each participants
 producing a secret isogeny $φ_i : E_i \to E_{i+1}$ and publishes
-$E_{i+1}$ along with curve points $U,V \in E_i$ and $X,Y \in E_{i+1}$
+$E_{i+1}$ along with curve points $U,V ∈ E_i$ and $X,Y ∈ E_{i+1}$
 such that $e_{E_i}(U,V) = e_{E_{i+1}}(X,Y)$.  
 
 Anyone can verify the whole trusted setup by checking all these
