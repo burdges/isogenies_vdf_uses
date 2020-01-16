@@ -63,10 +63,10 @@
 
 \section{Intro}
 
-A Verifiable Delay Function (VDF) is a function $f:X→Y$ from some
-space $X$ to some space $Y$ such that, given a random input $x∈X$, it
-is ``slow'' to evaluate $f(x)$, whereas for any $(x,y)∈X×Y$ verifying
-that $f(x)=y$ can be done ``fast''.
+A Verifiable Delay Function (VDF) is a function $f: X → Y$ from some
+space $X$ to some space $Y$ such that, given a random input $x ∈ X$,
+it is ``slow'' to evaluate $f(x)$, whereas for any $(x,y) ∈ X×Y$
+verifying that $f(x) = y$ can be done ``fast''.
 
 At first blush\footnote{At least 50\% of the authors of this note have
   thought this on first seeing the definition.} this may look similar
@@ -74,26 +74,24 @@ to the definition of the NP complexity class, however an important
 requirement for VDFs is that evaluation takes a set amount $T$ of
 \emph{sequential} time, i.e., that with high probability computing
 $f(x)$ takes $T$ ``elementary steps'', regardless of the amount of
-parallel processors the evaluator has at its disposal. This makes
+parallel processors the evaluator has at its disposal.  This makes
 designing good VDFs somewhat hard, and explains why only a handful of
 constructions is known.
 
 Formally, a VDF is a family of functions determined by two parameters:
 \begin{itemize}
-\item A \emph{security parameter} $λ$, e.g., $\lambda=128$;
+\item A \emph{security parameter} $λ$, e.g., $λ=128$;
 \item A \emph{delay parameter} $T$, independent%
-  \footnote{Formally, it is required that $T\in o(2^\lambda)$ for the
+  \footnote{Formally, it is required that $T\in o(2^λ)$ for the
     security definitions to make sense. %
     In practice, $T$ will be bounded by a value to be determined
     through applied cryptanalysis, however this value will typically
-    be large enough that it is irrelevant in applications.} from
-  $\lambda$.
+    be large enough that it is irrelevant in applications.} from $λ$.
 \end{itemize}
-Given $\lambda$ and $T$, the functions are determined by three
-algorithms:
+Given $λ$ and $T$, the functions are determined by three algorithms:
 \begin{enumerate}
 \item A \emph{parameter generation} routine $\Gen(λ,T)→(\ek,\vk)$,
-  that takes as inputs $\lambda$ and (optionally) $T$, and returns a
+  that takes as inputs $λ$ and (optionally) $T$, and returns a
   pair of \emph{public parameters} called the \emph{evaluation} and
   \emph{verification} key. %
   The keys define, among other things, the input and output sets
