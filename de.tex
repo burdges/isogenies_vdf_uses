@@ -1,0 +1,184 @@
+\documentclass{llncs}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{hyperref}
+\hypersetup{
+	unicode=true,
+	colorlinks=true,
+	citecolor=blue!70!black,
+	filecolor=black,
+	linkcolor=red!70!black,
+	urlcolor=blue,
+	pdfstartview={FitH},
+}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\F}{\mathbb{F}}
+\DeclareMathOperator{\poly}{poly}
+\DeclareMathOperator{\polylog}{polylog}
+\DeclareMathOperator{\Setup}{\mathsf{Setup}}
+\DeclareMathOperator{\Extract}{\mathsf{Extract}}
+\DeclareMathOperator{\Encaps}{\mathsf{Encaps}}
+\DeclareMathOperator{\Decaps}{\mathsf{Decaps}}
+\newcommand{\pp}{\mathsf{pp}}
+\newcommand{\id}{\mathsf{id}}
+\newcommand{\idk}{\mathsf{idk}}
+\newcommand{\keyspace}{\mathcal{K}}
+\newcommand{\cipherspace}{\mathcal{C}}
+
+\title{Delay Encryption}
+\author{Jeffrey Burdges\inst{1}
+  \and
+  Luca De Feo\inst{2}\orcidID{0000-0002-9321-0773}}
+\institute{
+  Web 3, Switzerland
+  \and
+  IBM Research Zürich, Switzerland
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  We introduce a new primitive named Delay Encryption, and give an
+  efficient instantation based on isogenies of supersingular curves
+  and pairings. %
+  Delay Encryption is related to Time-lock Puzzles and Verifiable
+  Delay Functions, and can be roughly described as ``identity based
+  encryption with slow decryption''. %
+  It has several applications in distributed protocols, such as
+  sealed bid Vickrey auctions and...
+
+  We give an instantiation of Delay Encryption by modifying Boneh and
+  Frankiln's IBE scheme, where we replace one secret by a long chain
+  of isognies, as in the isogeny VDF of De Feo, Masson, Petit and
+  Sanso. %
+  Similarly to the isogeny-based VDF, our Delay Encryption requires a
+  trusted setup before parameters can be safely used; our trusted
+  setup is identical to that of the VDF, thus the same parameters can
+  be generated once and shared for many executions of both protocols,
+  with possibly different delay parameters.
+
+  We also discuss several topics around delay protocols
+  based on isogenies that were left untreated by De Feo \emph{et al.},
+  namely: distributed trusted setup, watermarking, and implementations
+  issues.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+% Recall that an Identity Based Encryption scheme (IBE) is a public
+% key encryption
+
+\subsection{Applications of Delay Encryption}
+
+
+\section{Definitions}
+\label{sec:definitions}
+
+Our definition of Delay Encryption uses an API similar to a Key
+Encapsulation Mechanism; the adaptation to a PKE-like API is
+straightforward. A Delay Encryption scheme consists of four
+algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
+
+\begin{description}
+\item[$\Setup(\lambda, T) \to \pp$.] %
+  Takes a \emph{security parameter} $\lambda$, a \emph{delay
+    parameter} $T$, and produces a set of public parameters $\pp$. %
+  $\Setup$ must run in time $\poly(\lambda,T)$.
+\item[$\Extract(\pp,\id) \to \idk$.] %
+  Takes the public parameters $\pp$ and a \emph{session identifier}
+  $\id\in\{0,1\}^*$, and outputs a \emph{session key} $\idk$. %
+  $\Extract$ is expected to run in time \emph{exactly} $T$, see below.
+\item[$\Encaps(\pp,\id)\to (c,k)$.] %
+  Takes the public parameters $\pp$ and a \emph{session identifier}
+  $\id\in\{0,1\}^*$, and outputs a \emph{cyphertext}
+  $c\in\cipherspace$ and a \emph{key} $k\in\keyspace$. %
+  $\Encaps$ must run in time $\poly(\lambda)$.
+\item[$\Decaps(\pp,\id,\idk,c)\to k$.] %
+  Takes the public parameters $\pp$, a \emph{session identifier}
+  $\id$, a \emph{session key} $\idk$, a ciphertext $c\in\cipherspace$,
+  and outputs key $k\in\keyspace$. %
+  $\Decaps$ must run in time $\poly(\lambda)$.
+\end{description}
+
+A Delay Encryption scheme is correct if
+\[\bigl(c,\Decaps(\pp,\id,\idk,c)\bigr) = \Encaps(\pp,\id),\]
+whenever $\idk=\Extract(\pp,\id)$. %
+The security of Delay Encryption is defined similarly to that of
+public key encryption schemes, and in particular of identity-based
+ones; however one additional property is required of $\Extract$: that
+for a randomly selected identifier $\id$, the probability that
+$\Extract$ outputs $\idk$ in time less than $T$ is negligible. %
+We now give the formal definition.
+
+\paragraph{The security game.} It is apparent from the definitions
+that Delay Encryption has no secrets: after public parameters $\pp$
+are generated, anyone can run any of the algorithms. %
+Thus, the usual notion of indistinguishability will only be defined
+with respect to the delay parameter $T$: no adversary is able to
+distinguish a key $k$ from a random string in time $T-o(t)$, but
+anyone can in time $T$. %
+Properly defining what is meant by ``time'' requires fixing a
+computation model. %
+Here we follow the usual convention from VDFs, and assume a model of
+parallel computation: in this context, ``time $T$'' may mean $T$ steps
+of a parallel Turing machine, or an arithmetic circuit of depth $T$. %
+Crucially, we do not bound the amount of parallelism of the Turing
+machine, or the breadth of the circuit, i.e., we focus on
+\emph{sequential delay} functions.
+
+We consider the following $\Delta$-IND-CCA game. %
+Note that the game involves no oracles, owing to the fact that the
+scheme has no secrets.
+
+\begin{description}
+\item[Precomputation.] The adversary receives $\pp$ as input, and
+  outputs an algorithm $\mathcal{A}_1$. %
+\item[Challenge.] The challenger selects a random $\id$ and computes
+  $(c,k_0)\gets\Encaps(\pp,\id)$. %
+  It then picks a uniformly random $k_1\in\keyspace$, and a random bit
+  $b\in\{0,1\}$. %
+  Finally, it outputs $(c,k_b)$.
+\item[Guess.] The algorithm $\mathcal{A}_1$ is run on input
+  $(c,k_b)$. %
+  The adversary wins if $\mathcal{A}_1$ terminates in time less than
+  $\Delta$, and the output is such that $\mathcal{A}_1(c,k_b) = b$.
+\end{description}
+
+We say a Delay Encryption scheme is \emph{$\Delta$-Delay
+  Indistinguishable under Chosen Ciphertext Attacks} if, for any
+efficient adversary running the precomputation in time
+$\poly(\lambda,T)$, the probability of winning the game is
+negligible. %
+Obviously, the interesting schemes are those where $\Delta = t-o(t)$.
+
+\subsection{Instantiation from supersingular isogenies and pairings}
+
+
+
+\section{Distributed trusted setup}
+\label{sec:distr-trust-setup}
+
+\section{Watermarking}
+\label{sec:watermarking}
+
+\section{Challenges in implementing isogeny-based delay functions}
+\label{sec:secure-impl-isog}
+
+\section{Conclusion}
+
+\bibliography{isovdf,isogenies_bib/isogenies}
+\bibliographystyle{splncs04}
+
+\end{document}
+
+% LocalWords:  bilinear instantiation VDF subexponential morphisms
+% LocalWords:  instantiations supersingular endomorphism morphism
+% LocalWords:  isogenous homomomorphism endomorphisms homomorphism
+% LocalWords:  isogenies Frobenius isogeny subgraphs distorsion
+% LocalWords:  prover soundess sequentiality quaternion
+
