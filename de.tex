@@ -85,10 +85,9 @@ straightforward. A Delay Encryption scheme consists of four
 algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
 
 \begin{description}
-\item[$\Setup(\lambda, T) \to (\pp,A)$.] %
+\item[$\Setup(\lambda, T) \to \pp$.] %
   Takes a \emph{security parameter} $\lambda$, a \emph{delay
-    parameter} $T$, and produces a set of public parameters $\pp$
-    and an adversarial advantage function $A : \N \to \N$. %
+    parameter} $T$, and produces a set of public parameters $\pp$. %
   $\Setup$ must run in time $\poly(\lambda,T)$.
 \item[$\Extract(\pp,\id) \to \idk$.] %
   Takes the public parameters $\pp$ and a \emph{session identifier}
@@ -107,7 +106,7 @@ algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
 \end{description}
 
 A Delay Encryption scheme is correct if
-\[ \bigl(c,\Decaps(\pp,\id,\idk,c)\bigr) = \Encaps(\pp,\id), \]
+\[\bigl(c,\Decaps(\pp,\id,\idk,c)\bigr) = \Encaps(\pp,\id),\]
 whenever $\idk=\Extract(\pp,\id)$. %
 The security of Delay Encryption is defined similarly to that of
 public key encryption schemes, and in particular of identity-based
