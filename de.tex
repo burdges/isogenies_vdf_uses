@@ -1,6 +1,7 @@
 \documentclass{llncs}
 
 \usepackage{amsmath,amsfonts,amssymb}
+\usepackage{xcolor}
 \usepackage{hyperref}
 \hypersetup{
 	unicode=true,
@@ -13,11 +14,12 @@
 }
 
 \newcommand{\Z}{\mathbb{Z}}
-\newcommand{\Q}{\mathbb{Q}}
 \newcommand{\F}{\mathbb{F}}
+\renewcommand{\O}{\mathcal{O}}
 \DeclareMathOperator{\poly}{poly}
 \DeclareMathOperator{\polylog}{polylog}
 \DeclareMathOperator{\Setup}{\mathsf{Setup}}
+\DeclareMathOperator{\TSetup}{\mathsf{TrustedSetup}}
 \DeclareMathOperator{\Extract}{\mathsf{Extract}}
 \DeclareMathOperator{\Encaps}{\mathsf{Encaps}}
 \DeclareMathOperator{\Decaps}{\mathsf{Decaps}}
@@ -134,19 +136,19 @@ machine, or the breadth of the circuit, i.e., we focus on
 We consider the following $\Delta$-IND-CCA game. %
 Note that the game involves no oracles, owing to the fact that the
 scheme has no secrets.
-
+%
 \begin{description}
 \item[Precomputation.] The adversary receives $\pp$ as input, and
-  outputs an algorithm $\mathcal{A}_1$. %
+  outputs an algorithm $\mathcal{D}_1$. %
 \item[Challenge.] The challenger selects a random $\id$ and computes
   $(c,k_0)\gets\Encaps(\pp,\id)$. %
   It then picks a uniformly random $k_1\in\keyspace$, and a random bit
   $b\in\{0,1\}$. %
   Finally, it outputs $(c,k_b)$.
-\item[Guess.] The algorithm $\mathcal{A}_1$ is run on input
+\item[Guess.] The algorithm $\mathcal{D}_1$ is run on input
   $(c,k_b)$. %
-  The adversary wins if $\mathcal{A}_1$ terminates in time less than
-  $\Delta$, and the output is such that $\mathcal{A}_1(c,k_b) = b$.
+  The adversary wins if $\mathcal{D}_1$ terminates in time less than
+  $\Delta$, and the output is such that $\mathcal{D}_1(c,k_b) = b$.
 \end{description}
 
 We say a Delay Encryption scheme is \emph{$\Delta$-Delay
@@ -154,11 +156,203 @@ We say a Delay Encryption scheme is \emph{$\Delta$-Delay
 efficient adversary running the precomputation in time
 $\poly(\lambda,T)$, the probability of winning the game is
 negligible. %
-Obviously, the interesting schemes are those where $\Delta = t-o(t)$.
-
-\subsection{Instantiation from supersingular isogenies and pairings}
+Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
 
 
+\subsection{Isogenies as delay functions}
+
+We instantiate Delay Encryption from the same framework De Feo,
+Masson, Petit and Sanso used to instantiate Verifiable Delay
+Functions~\cite{10.1007/978-3-030-34578-5_10}. %
+We briefly recall it here for completeness.
+
+An elliptic curve $E$ over a finite field $\F_{p^n}$ is said to be
+supersingular if the trace of its Frobenius endomorphism is divisible
+by $p$, i.e., if $\#E(\F_{p^n})=1\mod p$. %
+Over the algebraic closure of $\F_p$, there is only a finite number of
+isomorphism classes of supersingular curves, and every class contains
+a curve defined over $\F_{p^2}$.
+
+An isogeny is a group morphism of elliptic curves with finite
+kernel. %
+In particular, isogenies preserve the group order of elliptic curves,
+and thus they preserve supersingularity. %
+Isogenies can be represented by ratios of polynomials, and, like
+polynomials, have a \emph{degree}. %
+Isogenies of degree $\ell$ are also called $\ell$-isogenies; the
+degree is multiplicative with respect to composition, thus
+$\deg\phi\circ\psi=\deg\phi\cdot\deg\psi$. %
+The degree is an important invariant of isogenies, roughly measuring
+the amount of information needed to represent them.
+
+An isogeny graph is a graph whose vertices are isomorphism classes of
+elliptic curves, and whose edges are isogenies, under some
+restrictions. %
+Isogeny-based cryptography mainly uses two types of isogeny graphs:
+\begin{itemize}
+\item The \emph{full supersingular graph} of $\F_p$, whose vertices
+  are all isomorphism classes of supersingular curves over $\F_{p^2}$,
+  and whose edges are all isogenies of a prime degree $\ell$;
+  typically $\ell=2,3$.
+\item The \emph{$\F_p$-restricted supersingular graph}, or
+  \emph{supersingular CM graph} of $\F_p$, whose vertices are all
+  $\F_p$-isomorphism classes of supersingular curves over $\F_p$, and
+  whose edges are $\ell$-isogenies for all primes $\ell$ up to some
+  bound; typically $\ell\lessapprox\lambda\log\lambda$, where
+  $\lambda$ is the security parameter.
+\end{itemize}
+
+Any $\ell$-isogeny $\phi:E\to E'$ has a unique \emph{dual}
+$\ell$-isogeny $\hat\phi:E'\to E$ such that
+\begin{equation}
+  \label{eq:adjoin}
+  e_N(\phi(P),Q) = e_N'(P,\hat\phi(Q)),
+\end{equation}
+for any integer $N$ and any points $P\in E[N]$, $Q\in E'[N]$, where
+$e$ is the Weil pairing on $E$, and $e'$ the one on $E'$. %
+The same equation, with the same $\hat\phi$, also holds for any other
+known pairing, such as the Tate and Ate pairings.
+
+The framework of De Feo \emph{et al.} uses chains of small degree
+isogenies as delay functions, and the pairing
+equation~\eqref{eq:adjoin} as an efficient means to verify the
+computation. %
+Formally, they propose two related instantiations of VDF, following
+the same pattern:
+%
+\begin{description}
+\item[Trusted setup] takes as input a security parameter $\lambda$,
+  and produces a prime $N\approx 2^{2\lambda}$, a prime $p=N\cdot f+1$
+  for some cofactor $f\sim 2^{\lambda^3}$, and a random supersingular
+  elliptic curve $E$ over $\F_p$.
+\item[Setup] takes as input $p,N,E$, a delay parameter $T$, and
+  performs a walk in an $\ell$-isogeny graph to produce a degree
+  $\ell^T$ isogeny $\phi:E\to E'$.
+  
+  It also computes a point $P\in E$ of order $N$, and outputs
+  $P,\phi(P)$.
+\item[Evaluation] takes as input a random point $Q\in E'[N]$ and outputs
+  $\hat\phi(Q)$.
+\item[Verification] uses Eq.~\eqref{eq:adjoin} to check that the value
+  output by evaluation is $\hat\phi(Q)$ as claimed.
+\end{description}
+
+The two variants only differ in the way the isogeny walk is set up,
+and in minor details of the verification; these differences will be
+irrelevant to us.
+
+The delay property of this VDF rest, roughly speaking, on the
+assumption that a chain of $T$ isogenies of small prime degree $\ell$
+cannot be computed more efficiently than by going through each of the
+isogenies one at a time, sequentially. %
+The case $\ell=2$ is very similar to repeated squaring in groups of
+unknown order as used by other VDFs~\cite{Wesolowski,Pietrzak} and
+time-lock puzzles~\cite{TLP}: in the latter one iterates $T$ times the
+function $x\mapsto x^2$, a polynomial of degree $2$; in the former one
+iterates rational fractions of degree $2$. %
+See Section~\ref{sec:secure-impl-isog} for more details.
+
+It is important to remark that both setup and evaluation in these VDFs
+are ``slow'' algorithms, indeed both need to evaluate an isogeny chain
+(either $\phi$, or $\hat\phi$) at one input point of order $N$; this
+is in stark contrast with VDFs based on groups of unknown order, where
+the complexity of setup does not depend on the delay parameter $T$.
+
+
+\subsection{Instantiation of Delay Encryption}
+
+The isogeny-based VDF of De Feo \emph{et al.}\ can be understood as a
+modification on the Boneh--Lynn--Shacham~\cite{boneh+lynn+shacham04}
+signature scheme, where the secret key is replaced by a long chain of
+isogenies: signing becomes a ``slow'' operation and thus realizes the
+evaluation function, whereas verification stays efficient.
+
+Similarly, we obtain a Delay Encryption scheme by modifying the IBE
+scheme of Boneh and Franklin~\cite{10.1007/3-540-44647-8_13}: the
+master secret is replaced by a long chain of isogenies, while session
+identifiers play the role of identities, so that producing the
+decryption key for a given identity becomes a slow operation.
+
+Concretely, $\Setup$ is identical to that of the VDF: it is split in a
+trusted and an untrusted part, the former being independent of the
+delay parameter $T$, and reusable for arbitrarily many untrusted
+setups.
+
+\begin{description}
+\item[$\TSetup(\lambda)$.]\
+  \begin{enumerate}
+  \item Generate primes $N$ and $p=4\cdot N\cdot f - 1$, such that
+    discrete logarithms in the subgroup of order $N$ of $\F_{p^2}$ are
+    $\lambda$-hard;
+  \item Generate a nearly uniformly random supersingular curve
+    $E/\F_p$ by starting from the curve $y^2=x^3+x$ and performing a
+    random walk in the $\F_p$-restricted supersingular graph;
+  \item Output $N,p,E$.
+  \end{enumerate}
+\item[$\Setup(N,p,E,T)$.]\
+  \begin{enumerate}
+  \item Perform an $\ell$-isogeny walk $\phi:E\to E'$ of length $T$;
+  \item Select a random point $P\in E(\F_p)$ of order $N$, and compute
+    $\phi(P)$;
+  \item Output $E',\phi,P,\phi(P)$.
+  \end{enumerate}
+\end{description}
+
+The isogeny chain $\phi$ in $\Setup$ can be generated by any of the
+two methods proposed by De Feo \emph{et al.}, the difference will be
+immaterial for Delay Encryption; as discussed
+in~\cite{10.1007/978-3-030-34578-5_10}, a (deterministic) walk limited
+to curves and isogenies defined over $\F_p$ will be more efficient,
+however a generic (pseudorandom) walk over $\F_{p^2}$ will offer some
+partial protection against quantum attacks.
+
+Before defining the other routines, we need two hash functions. %
+The first, $H_1:\{0,1\}*\to E'[N]$, will be used to hash session
+identifiers to points of order $N$ in $E'/\F_{p^2}$ (although the
+curve $E'$ may be defined over $\F_p$). %
+The second, $H_2:F_{p^2}\to\{0,1\}^\lambda$, will be a key derivation
+function. %
+Let $\pp = (N,p,E,E')$, then we define:
+
+\begin{description}
+\item[$\Extract(\pp,\phi,\id)$.]\
+  \begin{enumerate}
+  \item Let $Q = H_1(\id)$;
+  \item Output $\hat\phi(Q)$.
+  \end{enumerate}
+\item[$\Encaps(\pp,P,\phi(P),\id)$.]\
+  \begin{enumerate}
+  \item Select a uniformly random $r\in\Z/N\Z$;
+  \item Let $Q = H_1(\id)$;
+  \item Let $k=e_N'(\phi(P),Q)^r$;
+  \item Output $(rP,H_2(k))$.
+  \end{enumerate}
+\item[$\Decaps(\pp,\hat\phi(Q),rP)$.]\
+  \begin{enumerate}
+  \item Let $k = e_N(rP,\hat\phi(Q))$.
+  \item Output $H_2(k)$.
+  \end{enumerate}
+\end{description}
+
+Correctness of the scheme follows immediately from
+Eq.~\eqref{eq:adjoin} and the bilinearity of the pairing. %
+We next address its security.
+
+\subsection{Security}
+
+
+
+\begin{remark}
+  Notice that two (hashed) identities $Q,Q'$ such that
+  $Q-Q'\in\langle P\rangle$ are equivalent for encapsulation and
+  decapsulation purposes; however, thanks to $H_1$, the probability of
+  two identities collisioning this way is negligible (about $1/N$).
+  
+  Alternatively, if $E'$ is defined over $\F_p$, one can restrict the
+  image of $H_1$ to the subgroup of $E'[N]$ annihilated by $\pi+1$,
+  where $\pi$ is the Frobenius endomorphsim, like
+  in~\cite{10.1007/978-3-030-34578-5_10}.
+\end{remark}
 
 \section{Distributed trusted setup}
 \label{sec:distr-trust-setup}
