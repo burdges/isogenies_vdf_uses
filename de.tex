@@ -16,6 +16,7 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\F}{\mathbb{F}}
 \renewcommand{\O}{\mathcal{O}}
+\DeclareMathOperator{\End}{End}
 \DeclareMathOperator{\poly}{poly}
 \DeclareMathOperator{\polylog}{polylog}
 \DeclareMathOperator{\Setup}{\mathsf{Setup}}
@@ -135,21 +136,25 @@ machine, or the breadth of the circuit, i.e., we focus on
 
 We consider the following $\Delta$-IND-CCA game. %
 Note that the game involves no oracles, owing to the fact that the
-scheme has no secrets.
+scheme has no secrets. %
 %
 \begin{description}
 \item[Precomputation.] The adversary receives $\pp$ as input, and
-  outputs an algorithm $\mathcal{D}_1$. %
+  outputs an algorithm $\mathcal{D}$. %
 \item[Challenge.] The challenger selects a random $\id$ and computes
   $(c,k_0)\gets\Encaps(\pp,\id)$. %
   It then picks a uniformly random $k_1\in\keyspace$, and a random bit
   $b\in\{0,1\}$. %
   Finally, it outputs $(c,k_b)$.
-\item[Guess.] The algorithm $\mathcal{D}_1$ is run on input
+\item[Guess.] The algorithm $\mathcal{D}$ is run on input
   $(c,k_b)$. %
-  The adversary wins if $\mathcal{D}_1$ terminates in time less than
-  $\Delta$, and the output is such that $\mathcal{D}_1(c,k_b) = b$.
+  The adversary wins if $\mathcal{D}$ terminates in time less than
+  $\Delta$, and the output is such that $\mathcal{D}(c,k_b) = b$.
 \end{description}
+
+We stress that the game is intrinsically non-adaptive, in the sense
+that no computation is ``free'' after the adversary has seen the
+challenge.
 
 We say a Delay Encryption scheme is \emph{$\Delta$-Delay
   Indistinguishable under Chosen Ciphertext Attacks} if, for any
@@ -336,23 +341,180 @@ Let $\pp = (N,p,E,E')$, then we define:
 
 Correctness of the scheme follows immediately from
 Eq.~\eqref{eq:adjoin} and the bilinearity of the pairing. %
-We next address its security.
-
-\subsection{Security}
-
-
 
 \begin{remark}
-  Notice that two (hashed) identities $Q,Q'$ such that
+  Notice that two hashed identities $Q,Q'$ such that
   $Q-Q'\in\langle P\rangle$ are equivalent for encapsulation and
-  decapsulation purposes; however, thanks to $H_1$, the probability of
-  two identities collisioning this way is negligible (about $1/N$).
+  decapsulation purposes, and thus an adversary only needs to compute
+  the image of one of them under $\hat\phi$. %
+  However, thanks to $H_1$, the probability of two identities
+  collisioning this way is negligible (about $1/N$).
   
   Alternatively, if $E'$ is defined over $\F_p$, one can restrict the
   image of $H_1$ to the subgroup of $E'[N]$ annihilated by $\pi+1$,
   where $\pi$ is the Frobenius endomorphsim, like
   in~\cite{10.1007/978-3-030-34578-5_10}.
 \end{remark}
+
+
+\subsection{Security}
+
+The standard security hypothesis for isogeny-based delay schemes is
+the $\Delta$-hardness of the \emph{isogeny shortcut
+  game}~\cite{10.1007/978-3-030-34578-5_10}:
+
+\begin{description}
+\item[Precomputation.] The adversary receives $N,p,E,E',\phi$, and
+  outputs an algorithm $\mathcal{S}$ (in time $\poly(\lambda,T)$).
+\item[Challenge.] The challenger outputs a uniformly random
+  $Q\in E'[N]$.
+\item[Guess.] The algorithm $\mathcal{S}$ is run on input $Q$. The
+  adversary wins if $\mathcal{S}$ terminates in time less than
+  $\Delta$, and $\mathcal{S}(Q) = \hat\phi(Q)$.
+\end{description}
+
+Unfortunately, it seems challenging to reduce $\Delta$-IND-CCA
+security of our Delay Encryption scheme to some $\Delta'$-hardness of
+an isogeny shortcut game. %
+Indeed, even given a more powerful adversary that is able to correctly
+compute $k=e_N(rP,\hat\phi(Q))$ in time $\Delta$ from the knowledge or
+$Q$ and $rP$, it is not clear how to efficiently extract the value of
+$\hat\phi(Q)$ from $k$, as this would amount to efficiently solving a
+pairing inversion problem.
+
+It is clear that the isogeny shortcut models a weaker notion of
+security for Delay Encryption, one that states that it is hard to
+produce the output of $\Extract$ in time less than $\Delta$, however
+this is obviously insufficient to guarantee $\Delta'$-IND-CCA, as an
+alternative way to compute the key $k$ is to evaluate $\phi(rP)$ and
+compute $k=e_N'(\phi(rP), Q)$. %
+In practice, computing $\phi(rP)$ is expected to be at least as
+``slow'' as computing $\hat\phi(Q)$, however this idea is not captured
+by the isogeny shortcut game; and, even then, that would not exclude
+other ways to win the $\Delta$-IND-CCA game, without the ability to
+extract $\phi(rP)$ or $\hat\phi(Q)$ from a successful adversary.
+
+Replacing the isogeny shortcut game with a decision problem would not
+help either, owing to the usual obstacle of decision problems being
+easy for pairings; indeed, the decision version of the shortcut game
+is easily decided by the verification procedure of the VDF mentioned
+above.
+
+Faced with this difficulty, we simply chose to not provide a security
+proof, and leave the search for meaningful security reductions for
+future work.
+
+\subsubsection{Attacks.} We now shift our attention to attacks. %
+As discussed in~\cite{10.1007/978-3-030-34578-5_10}, there are three
+types of known attacks: \emph{shortcut} attacks, discrete logarithm
+attacks, and attacks on the computation.
+
+Parameters for a Delay Encryption scheme must be chosen so that all
+known attacks have exponential difficulty in the security parameter
+$\lambda$. %
+Given that (total) attacks successfully compute decapsulation in
+exponential time in $\lambda$, it is evident that the delay parameter
+$T$ must grow at most subexponentially $\lambda$.
+
+\paragraph{Shortcut attacks} aim at computing a shorter path
+$\psi:E\to E'$ in the isogeny graph from the knowledge of
+$\phi:E\to E'$. %
+The name should not be confused with the isogeny shortcut game
+described above, as shortcut attacks are only one of the possible ways
+to beat the game.
+
+De Feo \emph{et al.}\ show that shortcut attacks are possible when the
+endomorphism ring of at least one of $E$ or $E'$ is known. %
+Indeed, in this case, the isogeny $\phi$ can be translated to an ideal
+class in the endomorphism ring, then smoothing techniques similar
+to~\cite{kohel2014quaternion} let us convert the ideal to one of
+smaller norm, and finally to an isogeny $\phi:E\to E'$ of smaller
+degree.
+
+The only way out of these attacks is to select the starting curve $E$
+as a uniformly random supersingular curve over $\F_p$, then no
+efficient algorithm is known to compute $\End(E)$, nor $\End(E')$. %
+Unfortunately, the only way we currently know to sample nearly
+uniformly in the supersingular class over $\F_p$, is to
+(paraphrasing) choose the endomorphism ring first, and then compute
+$E$ given $\End(E)$.
+
+Thus, the solution put forth in~\cite{10.1007/978-3-030-34578-5_10} is
+to generate the starting curve $E$ via a trusted setup, that first
+selects $\End(E)$, and then outputs $E$ and throws away the
+information about its endomorphism ring. %
+We explain in the next section how to mitigate the inconvenience of
+having a trusted setup, using a distributed protocol.
+
+As stressed in~\cite{10.1007/978-3-030-34578-5_10}, there is no
+evidence that ``hashing'' in the supersingular class, i.e., sampling
+nearly uniformly without gaining knowledge of the endomorphism ring,
+should be a hard problem. %
+But there is no evidence it should be easy either, and several
+attempts have failed
+already~\cite{cryptoeprint:2019:1202,love2019supersingular}.
+
+Another possibility hinted at in~\cite{10.1007/978-3-030-34578-5_10}
+would be to generate ordinary pairing friendly curves with large
+isogeny class, as the shortcut attack is then thwarted by the
+difficulty of computing the order of the class group of the
+endomorphism ring. %
+However this possibly seems an even harder problem than hashing to the
+supersingular class.
+
+\paragraph{Discrete logarithm attacks} compute $\hat\phi(Q)$ by
+directly solving the pairing equation~\eqref{eq:adjoin}. %
+In our case, we can even directly attack the key encapsulation. %
+Indeed, knowing $rP$, we obtain $r$ through a discrete logarithm, and
+then compute $k=e_N'(\phi(P),Q)^r$.
+
+Thanks to the efficiently computable pairing, the discrete logarithm
+can actually be solved in $\F_{p^2}$, which motivates taking $p,N$
+large enough to resist discrete logarithm computations. %
+Obviously, this also shows that our scheme is easily broken by quantum
+computers. %
+See~\cite{10.1007/978-3-030-34578-5_10}, however, for a discussion of
+how a setup with pseudo-random walks over $\F_{p^2}$ resists quantum
+attacks in a world where quantum computers are available, but much
+more expensive than classical ones.
+
+\paragraph{Attacks on the computation} do not seek to deviate from the
+description of the protocol, but simply try to speed up $\Extract$
+beyond the way officially prescribed by the scheme. %
+In this sort of attacks, the adversary may be given more resources
+than the legitimate user: for example, it may be allowed a very large
+precomputation, or it may dispose of an unbounded amount of
+parallelism, or it may have access to an architecture not available to
+the user (e.g., a quantum computer).
+
+These attacks are the most challenging to analyze, because standard
+complexity-theoretical techniques are of little help here. %
+% (see, however~\cite{todo})
+On some level, this goal is unachievable: given a sufficiently
+abstract computational model, and a sufficiently powerful adversary,
+any scheme is broken. %
+For example, an adversary may precompute all possible pairs
+$(Q,\hat\phi(Q))$ and store them in a $O(1)$-accessible RAM, then
+extraction amounts to a table lookup. %
+However, such an adversary with exponential precomputation,
+exponential storage, and constant time RAM is easily dismissed as
+unreasonable. %
+More subtle trade-offs between precomputation, storage and efficiency
+can be obtained, like, for example, RNS-based techniques to attack
+group-based VDFs~\cite{BernsteinSorenson07}, although the real impact
+of these theoretical algorithms has yet to be determined.
+
+Instead, the pragmatical approach taken to address attacks on the
+computation, is to massively invest in highly specialized hardware
+designs to evaluate the ``slow'' function, and then produce the best
+designs at scale, so that they are available to anyone who wants to
+run the extraction. %
+This is the philosophy of the competitions organized by
+Ethereum~\cite{ethereum-vdf} and Chia~\cite{chia-vdf}, targeting,
+respectively, the RSA based VDF and the class group based VDF.
+
+We explore this topic more in detail in
+Section~\ref{sec:secure-impl-isog}.
 
 \section{Distributed trusted setup}
 \label{sec:distr-trust-setup}
