@@ -33,14 +33,14 @@
 \newcommand{\Qmid}{Q_\mathrm{mid}}
 
 \title{Delay Encryption}
-\author{Jeffrey Burdges\inst{1}
-  \and
-  Luca De Feo\inst{2}\orcidID{0000-0002-9321-0773}}
-\institute{
-  Web 3, Switzerland
-  \and
-  IBM Research Zürich, Switzerland
-}
+% \author{Jeffrey Burdges\inst{1}
+%   \and
+%   Luca De Feo\inst{2}\orcidID{0000-0002-9321-0773}}
+% \institute{
+%   Web 3, Switzerland
+%   \and
+%   IBM Research Zürich, Switzerland
+% }
 
 \begin{document}
 
@@ -54,7 +54,7 @@
   Delay Functions, and can be roughly described as ``identity based
   encryption with slow decryption''. %
   It has several applications in distributed protocols, such as
-  sealed bid Vickrey auctions and...
+  sealed bid Vickrey auctions and electronic voting.
 
   We give an instantiation of Delay Encryption by modifying Boneh and
   Frankiln's IBE scheme, where we replace one secret by a long chain
@@ -75,10 +75,136 @@
 \section{Introduction}
 \label{sec:introduction}
 
-% Recall that an Identity Based Encryption scheme (IBE) is a public
-% key encryption
+The first appearance of \emph{delay cryptography} was in Rivest,
+Shamir and Wagner's~\cite{TLP} \emph{Time-lock Puzzle}, an encryption
+primitive where the holder of a trapdoor can encrypt (or decrypt)
+``fast'', but where anyone not knowing the trapdoor can only decrypt
+(or encrypt) ``slowly''.
+
+Recently, a revival of delay cryptography has been promoted by
+research on blockchains, in particular to the introduction of
+\emph{Verifiable Delay Functions (VDF)}~\cite{Boneh}, deterministic
+functions that can only be evaluated ``slowly'', but such that
+verifying that $y=f(x)$ is ``fast''. %
+
+After their definition, VDFs quickly gained attention, prompting two
+independent solutions in the space of a few
+weeks~\cite{Wesolowski,Pietrzak}. %
+Both proposals are based on repeated squaring in groups of known
+order, and are similar in spirit to Rivest \emph{et al.}'s time-lock
+puzzle, however they use no trapdoor.
+
+One year later, another VDF, based on a different algebraic structure,
+was proposed by De Feo, Masson, Petit and
+Sanso~\cite{10.1007/978-3-030-34578-5_10}. %
+This VDF uses chains of supersingular isogenies as ``slow'' function,
+and pairings for efficient verification.
+
+In this work we introduce a new delay primitive, called Delay
+Encryption. %
+It is related to both Time-lock puzzles and VDFs, however it does not
+seem to be subsumed by either. %
+We also give an instantiation of Delay Encryption based on the same
+isogenies/pairings framework of De Feo \emph{et al.}.
+
+Delay Encryption can be roughly described as Identity Based Encryption
+(IBE) with ``slow'' decryption. %
+Recall that an IBE scheme is a public key encryption with three
+parties: a dealer who possess a master private-public key-pair, a
+receiver who has an \emph{identity} that acts as its public key (e.g.,
+its email address), and a senders who wants to send a message to the
+receiver. %
+In IBE, receivers get their private keys from the dealer, who computes
+the private key associated to an identity using its master secret key;
+senders encrypt messages to the receivers using both the master public
+key and the identity of the receiver; receivers decrypt using the
+master public key and their private key.
+
+In Delay Encryption there are no secrets. %
+Receivers become \emph{sessions}, with an associated \emph{session
+  identifier}; it is important that session identifiers are
+unpredictable, and are thrown away after the first use. %
+The dealer is replaced by a public functionality, that takes as input
+a session identifier and outputs a \emph{session key}; this
+functionality, named \emph{extraction}, is guaranteed to be
+``slow''. %
+Senders encrypt messages to the sessions by using the public
+parameters, and the identifier of the session. %
+After extraction produces its output, everyone can decrypt messages
+sent to the session using the session key.
+
+Delay Encryption is different from Time-lock puzzles in that it has no
+trapdoor, and from VDFs in that it provides a ``fast'' computation,
+rather than just a ''fast'' verification. %
+Although some applications of Delay Encryption may be also achieved
+less efficiently through VDFs or Time-locks, it does not seem easy to
+generically construct Delay Encryption from any of the two.
+
 
 \subsection{Applications of Delay Encryption}
+
+Delay Encryption has some intersting applications, of which we mention
+two.
+
+\paragraph{Vickrey auctions.} Sealed bid auctions are easily
+implemented using standard public key encryption: each bidder seals
+its bid by encrypting it under a random public key; when the auction
+is over it publishes the secret key to reveal the bid.
+
+This design has one flaw in contexts where it is required that all
+bidders reveal their bids at the end of the auction. %
+For example, in Vickrey auctions, the highest bidder wins the auction,
+but only pays the price of the second highest bid. %
+If at the end of the auction some bidders refuse to reveal their bid,
+the result of the auction may be invalid.
+
+This problem is difficult to solve using standard public key
+cryptography, as it obviously requires some form of key escrow. %
+Delay Encryption provides a very natural solution: at the beginning of
+the auction an \emph{auction id} is selected using some unpredictable
+and unbiased randomness, e.g., coming from a randomness beacon. %
+After the auction id is published, all bidders encrypt to the auction
+as senders of a Delay Encryption scheme. %
+In the meantime, anyone can start computing the auction key using the
+extraction functionality. %
+When the \emph{auction key} associated with the auction id is known,
+anyone can decrypt all bids and check the winner.
+
+\paragraph{Electronic voting.} In electronic voting it is often
+required that the partial tally of an election stays unknown until the
+end, to avoid influencing the outcome. %
+
+Delay Encryption again solves the problem elegantly: once the
+\emph{election id} is published, all voters can cast their ballot by
+encrypting under it. %
+Only after the election key is published, anyone can verify the
+outcome by decrypting the ballots. %
+
+Of course this idea can be combined with classical techniques for
+anonymity, integrity, etc.
+
+\medskip
+
+In both applications it is evident that the session/auction/election
+id must be unpredictable and unbiased: if it is not, someone may start
+computing the session key before anyone else can, and thus break the
+delay property. %
+Fortunately, this requirement is easily satisfied by using randomness
+beacons, which accessorily can be implemented using VDFs.
+
+\subsubsection{Plan.}
+We start by defining Delay Encryption in
+Section~\ref{sec:definitions}, and give our instantiation in
+Section~\ref{sec:delay-encrypt-from}. %
+In the following sections, we discuss several topics related to both
+Delay Encryption and VDFs from isogenies and pairings:
+Section~\ref{sec:distr-trust-setup} explains how to efficiently
+implement the trusted setup, common to both our Delay encryption and
+the isogeny based VDF, in a distributed manner;
+Section~\ref{sec:watermarking} covers Watermarking, a mechanism to
+prove ``ownership'' of a ``slow'' computation; finally
+Section~\ref{sec:secure-impl-isog} discusses implementation details
+and challenges for isogeny based delay functions.
 
 
 \section{Definitions}
@@ -166,7 +292,8 @@ negligible. %
 Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
 
 
-\subsection{Isogenies as delay functions}
+\section{Delay Encryption from isogenies and pairings}
+\label{sec:delay-encrypt-from}
 
 We instantiate Delay Encryption from the same framework De Feo,
 Masson, Petit and Sanso used to instantiate Verifiable Delay
@@ -266,7 +393,7 @@ is in stark contrast with VDFs based on groups of unknown order, where
 the complexity of setup does not depend on the delay parameter $T$.
 
 
-\subsection{Instantiation of Delay Encryption}
+\subsection{Instantiation}
 
 The isogeny-based VDF of De Feo \emph{et al.}\ can be understood as a
 modification on the Boneh--Lynn--Shacham~\cite{boneh+lynn+shacham04}
@@ -906,9 +1033,42 @@ alternatively find a better way to represent and evaluate isogeny
 chains.
 
 
-%\section{Conclusion}
+\section{Conclusion}
 
+We introduced a new time delay primitive, named Delay Encryption,
+related to Time-lock Puzzles and Verifiable Delay Functions. %
+Delay Encryption has some interesting applications such as sealed-bid
+auctions and electronic voting. %
+We gave an instantiation of Delay Encryption using isogenies of
+supersingular curves and pairings, and discussed several related
+topics that also apply to the VDF of De Feo, Masson, Petit and Sanso.
 
+Several interesting questions are raised by our work. %
+For example, while the security definition for Delay Encryption is
+natural, we were not able to provide a meaningful security reduction
+for our instantiation. %
+It would be interesting to explore modifications to the scheme that
+lead to a meaningful security proof.
+
+Like the isogeny-based VDF, our Delay Encryption requires a trusted
+setup. %
+We described an efficient way to perform a distributed trusted setup,
+however more research is needed on the zero-knowledge proofs used in
+it.
+
+The implementation of delay functions from isogenies presents several
+practical challenges, such as needing very large storage for the
+public parameters. %
+On top of that, it is not evident how to prove the optimality of
+isogenies formulas used for evaluating the delay function. %
+While we gave here extremely efficient formulas, these seem to be at
+least one multiplication more expensive than the theoretical
+optimum. %
+More research on the arithmetic of elliptic curves best adapted to
+work with extremely long chains of isogenies is needed.
+
+Finally, we invite the community to look for more constructions of
+Delay Encryption, in particular quantum-resistant ones.
 
 \def\doi#1{\href{https://doi.org/#1}{\tt https://doi.org/\nolinkurl{#1}}}
 \bibliography{isovdf,isogenies_bib/isogenies}
