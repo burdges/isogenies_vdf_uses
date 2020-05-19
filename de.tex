@@ -84,8 +84,8 @@ primitive where the holder of a trapdoor can encrypt (or decrypt)
 Recently, a revival of delay cryptography has been promoted by
 research on blockchains, in particular to the introduction of
 \emph{Verifiable Delay Functions (VDF)}~\cite{Boneh}, deterministic
-functions that can only be evaluated ``slowly'', but such that
-verifying that $y=f(x)$ is ``fast''. %
+functions $f$ that can only be evaluated not only ``slowly'' but
+``sequentially'', but such that verifying that $y=f(x)$ is ``fast''. %
 
 After their definition, VDFs quickly gained attention, prompting two
 independent solutions in the space of a few
@@ -97,8 +97,8 @@ puzzle, however they use no trapdoor.
 One year later, another VDF, based on a different algebraic structure,
 was proposed by De Feo, Masson, Petit and
 Sanso~\cite{10.1007/978-3-030-34578-5_10}. %
-This VDF uses chains of supersingular isogenies as ``slow'' function,
-and pairings for efficient verification.
+This VDF uses chains of supersingular isogenies as ``sequential slow''
+function, and pairings for efficient verification.
 
 In this work we introduce a new delay primitive, called Delay
 Encryption. %
@@ -108,7 +108,7 @@ We also give an instantiation of Delay Encryption based on the same
 isogenies/pairings framework of De Feo \emph{et al.}.
 
 Delay Encryption can be roughly described as Identity Based Encryption
-(IBE) with ``slow'' decryption. %
+(IBE) with ``sequential and slow'' derived private key issuance. %
 Recall that an IBE scheme is a public key encryption with three
 parties: a dealer who possess a master private-public key-pair, a
 receiver who has an \emph{identity} that acts as its public key (e.g.,
@@ -127,7 +127,7 @@ unpredictable, and are thrown away after the first use. %
 The dealer is replaced by a public functionality, that takes as input
 a session identifier and outputs a \emph{session key}; this
 functionality, named \emph{extraction}, is guaranteed to be
-``slow''. %
+``sequential and slow''. %
 Senders encrypt messages to the sessions by using the public
 parameters, and the identifier of the session. %
 After extraction produces its output, everyone can decrypt messages
@@ -135,10 +135,10 @@ sent to the session using the session key.
 
 Delay Encryption is different from Time-lock puzzles in that it has no
 trapdoor, and from VDFs in that it provides a ``fast'' computation,
-rather than just a ''fast'' verification. %
+rather than just a ``fast'' verification. %
 Although some applications of Delay Encryption may be also achieved
 less efficiently through VDFs or Time-locks, it does not seem easy to
-generically construct Delay Encryption from any of the two.
+generically construct Delay Encryption from either.
 
 
 \subsection{Applications of Delay Encryption}
@@ -635,9 +635,9 @@ of these theoretical algorithms has yet to be determined.
 
 In practice, a pragmatic approach to address attacks on the
 computation is to massively invest in highly specialized hardware
-development to evaluate the ``slow'' function quickly, and then produce
-the best designs at scale, so that they are available to anyone who
-wants to run the extraction. %
+development to evaluate the ``sequential and slow'' function quickly,
+and then produce the best designs at scale, so that they are available
+to anyone who wants to run the extraction. %
 This is the philosophy of the competitions organized by
 Ethereum~\cite{ethereum-vdf} and Chia~\cite{chia-vdf}, targeting,
 respectively, the RSA based VDF and the class group based VDF.
