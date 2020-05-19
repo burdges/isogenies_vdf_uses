@@ -738,8 +738,7 @@ For the zero knowledge proof, several choices are available:
   More research on the optimization of SeaSign-style proofs for this
   specific context would be welcome.
 \item[Generic ZK proofs,] %
-  such as SNARKs~\cite{todo} or STARKs~\cite{todo}, are likely to be
-  the best candidates at this point. %
+  such as SNARKs~\cite{todo}, are likely to be the best candidates at this point. %
   It would be interesting to study which instantiations give the best
   parameters for the problem at hand.
 \end{description}
@@ -774,8 +773,29 @@ essentially a pairing computation). %
 On the flip side, it is not zero-knowledge, thus the security of the
 trusted setup stands on a less firm ground.
 
-It would be interesting to find a zero-knowledge proof of knowledge of
-an isogeny walk with efficiency comparable to the one sketched above.
+We can addressed this by doing the verification alone in zero knowledge.
+In other words, we compute $P,Q \gets H(E_{i-1},E_i)$ as before,
+but then select a blinding scalar $b$ and reveal only $b \psi_i(P)$ and
+$b \hat\psi_i(Q)$, so that 
+  $e_N^i( b \psi_i(P), Q ) = e_N^{i-1}( P, b \hat\psi_{i-1}(Q) )$.
+Along with this, we also provide a Schnorr-like DLEQ proof for $b$,
+for which we work in the target group and employ Peterson commitments
+to $e_N^i( \psi_i(P), Q )$ and $e_N^{i-1}( P, \hat\psi_{i-1}(Q) )$
+and proofs of knowledge for these commitments.
+
+Also, there exists a rapidly expanding SNARK toolbox from which
+one could preform $\F_p$ arithmetic inside the SNARK to check the
+verification conditions 2 and 3 directly: 
+\begin{enumerate}
+\item If one selects $p$ using Cocks-Pinch then one might possess
+a pairing friendly elliptic curve with group order $p$, like in ZEXE. 
+% https://eprint.iacr.org/2018/962.pdf
+\item $\F_p$ arithmetic can be optimised directly using polynomial
+commitments, like in plookup.
+% https://eprint.iacr.org/2020/315.pdf
+\end{enumerate}
+We think both sounds unnecessarily complex and unpleasantly slow however.
+
 
 \section{Watermarking}
 \label{sec:watermarking}
