@@ -52,14 +52,14 @@
   and pairings. %
   Delay Encryption is related to Time-lock Puzzles and Verifiable
   Delay Functions, and can be roughly described as ``identity based
-  encryption with slow decryption''. %
+  encryption with slow derived private key issuance''. %
   It has several applications in distributed protocols, such as
   sealed bid Vickrey auctions and electronic voting.
 
   We give an instantiation of Delay Encryption by modifying Boneh and
-  Frankiln's IBE scheme, where we replace one secret by a long chain
-  of isognies, as in the isogeny VDF of De Feo, Masson, Petit and
-  Sanso. %
+  Frankiln's IBE scheme, where we replace the master secret key by a
+  long chain of isognies, as in the isogeny VDF of De Feo, Masson, 
+  Petit and Sanso. %
   Similarly to the isogeny-based VDF, our Delay Encryption requires a
   trusted setup before parameters can be safely used; our trusted
   setup is identical to that of the VDF, thus the same parameters can
@@ -633,11 +633,11 @@ can be obtained, like, for example, RNS-based techniques to attack
 group-based VDFs~\cite{BernsteinSorenson07}, although the real impact
 of these theoretical algorithms has yet to be determined.
 
-Instead, the pragmatical approach taken to address attacks on the
-computation, is to massively invest in highly specialized hardware
-designs to evaluate the ``slow'' function, and then produce the best
-designs at scale, so that they are available to anyone who wants to
-run the extraction. %
+In practice, a pragmatic approach to address attacks on the
+computation is to massively invest in highly specialized hardware
+development to evaluate the ``slow'' function quickly, and then produce
+the best designs at scale, so that they are available to anyone who
+wants to run the extraction. %
 This is the philosophy of the competitions organized by
 Ethereum~\cite{ethereum-vdf} and Chia~\cite{chia-vdf}, targeting,
 respectively, the RSA based VDF and the class group based VDF.
