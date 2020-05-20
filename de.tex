@@ -999,11 +999,23 @@ $\approx 1500$ bits, i.e., $\approx 16$TiB of storage!
 
 We stress that only evaluators need to store that much information,
 however any FPGA design for isogeny-based delay functions must take
-this constraint into account, and provide a very fast storage with
+this constraint into account, and provide fast storage with
 throughputs of the order of several GiB/s. %
-While such throughputs may be achieved by attaching several solid
-state drives in parallel, this solution may turn out to be unpractical
-and expensive.
+% While such throughputs may be achieved by attaching several solid
+% state drives in parallel, this solution may turn out to be unpractical
+% and expensive.
+
+If 2-isogenies can be evaluated in say 2ns then an isogeny VDF begins
+consuming the full memory bandwidth of current CPUs, which conceivably
+increases confidence in attackers computational limits. 
+
+An isogenies VDF could dramatically reduce storage requirements by
+doing repeated shorter evaluations, and simply hashing each output
+to be the input for the next evaluation.  We sacrifice verifier time
+by doing so, but verifiers remain fast since they still only compute
+two or three pairings, depending upon watermarking.  We caution however
+that this trick appears useless for Delay Encryption, which makes
+an evaluator designed for Delay Encryption far more expensive. 
 
 In~\cite{10.1007/978-3-030-34578-5_10}, De Feo \emph{et al.} describe
 an alternative implementation that divides the required storage by a
