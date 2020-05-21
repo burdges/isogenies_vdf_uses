@@ -82,8 +82,8 @@ primitive where the holder of a trapdoor can encrypt (or decrypt)
 (or encrypt) ``slowly''.
 
 Recently, a revival of delay cryptography has been promoted by
-research on blockchains, in particular to the introduction of
-\emph{Verifiable Delay Functions (VDF)}~\cite{Boneh}, deterministic
+research on blockchains, in particular thanks to the introduction of
+\emph{Verifiable Delay Functions (VDF)}~\cite{Boneh}: deterministic
 functions $f$ that can only be evaluated  ``sequentially'' and ``slowly'',
 but such that verifying that $y=f(x)$ is ``fast''. %
 
@@ -98,17 +98,86 @@ One year later, another VDF, based on a different algebraic structure,
 was proposed by De Feo, Masson, Petit and
 Sanso~\cite{10.1007/978-3-030-34578-5_10}. %
 This VDF uses chains of supersingular isogenies as ``sequential slow''
-functions, and pairings for efficient verification.
+functions, and pairings for efficient verification. %
+Interestingly, it is not known how to build a time-lock puzzle from
+isogenies; in this work we introduce a new primitive, in some respects
+more powerful than time-lock puzzles, that we are able to instantiate
+from isogenies.
 
-In this work we introduce a new delay primitive, called Delay
-Encryption. %
-It is related to both Time-lock puzzles and VDFs, however it does not
-seem to be subsumed by either. %
-We also give an instantiation of Delay Encryption based on the same
-isogenies/pairings framework of De Feo \emph{et al.}.
+\subsubsection{Limitations of Time-lock puzzles.}
+Time-lock puzzles allow one to ``encrypt to the future'', i.e., to
+create a puzzle $\pi$ that encapsulates a message $m$ for a set amount
+of time $T$. %
+They have the following two properties:
+\begin{itemize}
+\item Puzzle generation is efficient: there exists an algorithm which,
+  on input the message $m$ and the \emph{delay} $T$, generates $\pi$
+  in time much less than $T$.
+\item Puzzle solving is predictably slow and sequential: on input
+  $\pi$, the message $m$ can be recovered by a circuit of depth
+  approximately $T$, and no a circuit of depth less than $T$ can
+  recover $m$ reliably.
+\end{itemize}
 
-Delay Encryption can be roughly described as Identity Based Encryption
-(IBE) with ``sequential and slow'' derived private key issuance. %
+Time-lock puzzles can be used to remove trusted parties from
+protocols, replacing them with a time-consuming puzzle solving. %
+Prototypical applications are auctions and electronic voting, we will
+use auctions as a motivating example.
+
+In a highest bidder auction, the easy solution in presence of a
+trusted authority is to encrypt bids to the authority, who then
+decrypts all the bids and selects the winner. %
+Lacking a trusted authority, the standard solution is to divide the
+auction in two phases: in the \emph{bidding phase} all bidders commit
+to their bids using a commitment; it the \emph{tallying phase} bidders
+open their commitments, and the highest bidder wins. %
+However, this design has one flaw in contexts where it is required
+that all bidders reveal their bids at the end of the auction. %
+For example, in \emph{Vickrey auctions}, the highest bidder wins the
+auction, but only pays the price of the second highest bid. %
+If at the end of the auction some bidders refuse to open their
+commitment, the result of the auction may be invalid.
+
+Time-lock puzzles solve this problem: by having bidders encapsulate
+their bid in a time-lock puzzle, it is guaranteed that all bids can be
+decrypted in the tallying phase. %
+However this solution becomes very expensive in large auctions,
+because one puzzle per bidder must be solved: if several thousands of
+bidders participate, the tallyers must strike a balance between
+running thousands of puzzle solving computations in parallel, and
+having a tallying phase that is a thousands times longer than the
+bidding phase. %
+Since time-lock puzzles use trapdoors for puzzle generation, a
+potential mitigation is to have the bidders reveal their trapdoors in
+the tallying phase, thus speeding up decryption; however this does not
+help in presence of a large number of uncollaborative bidders.
+
+An elegant solution introduced in~\cite{C:MalThy19} is to use
+\emph{Homomorphic Time-lock Puzzles (HTLP)}, i.e., time-lock puzzles
+where the puzzles can be efficiently combined homomorphically. %
+Using these, the tallyers can efficiently evaluate the desired
+tallying circuit on the unopen puzzles, and then run only a single
+slow puzzle-solving algorithm. %
+Unfortunately, the only efficient HTLPs introduced
+in~\cite{C:MalThy19} are simply homomorphic (either additively or
+multiplicatively), and they are thus only useful for voting; fully
+homomprphic TLPs, which are necessary for auctions, are only known
+from indistinguishability obfuscation~\cite{FOCS:GGHRSW13}, and are
+thus unpractical. %
+
+On top of that, it can be argued that time-lock puzzles are not the
+appropriate primitive to solve the problem: why do the tallyers need
+to run one of two different algorithms to open the puzzles? Are
+trapdoors really necessary. %
+In this work, we introduce a new primitive, \emph{Delay Encryption},
+that arguably solves the problem more straightforwardly and elegantly.
+
+
+\subsubsection{Delay Encryption.}
+Delay Encryption is related to both Time-lock puzzles and VDFs,
+however it does not seem to be subsumed by either. %
+It can be roughly described as Identity Based Encryption (IBE) with
+sequential and slow derived private key issuance. %
 Recall that an IBE scheme is a public key encryption with three
 parties: a dealer who possess a master private-public key-pair, a
 receiver who has an \emph{identity} that acts as its public key (e.g.,
@@ -126,40 +195,32 @@ Receivers become \emph{sessions}, with an associated \emph{session
 unpredictable, and are thrown away after the first use. %
 The dealer is replaced by a public functionality, that takes as input
 a session identifier and outputs a \emph{session key}; this
-functionality, named \emph{extraction}, is guaranteed to be
-``sequential and slow''. %
+functionality, named \emph{extraction}, is guaranteed to be sequential
+and slow. %
 Senders encrypt messages to the sessions by using the public
 parameters, and the identifier of the session. %
 After extraction produces its output, everyone can decrypt messages
 sent to the session using the session key.
 
-Delay Encryption is different from Time-lock puzzles in that it has no
-trapdoor, and from VDFs in that it provides a ``fast'' computation,
-rather than just a ``fast'' verification. %
-Although some applications of Delay Encryption may be also achieved
-less efficiently through VDFs or Time-locks, it does not seem easy to
-generically construct Delay Encryption from either.
+Delay Encryption is different from known Time-lock puzzles in that it
+has no trapdoor, and from VDFs in that it provides a fast encryption,
+rather than just a fast verification. %
+It has similar applications to Homomorphic time-lock puzzles, it is
+however more efficient and solves problems more straightforwardly.
 
 
-\subsection{Applications of Delay Encryption}
+\subsubsection{Applications of Delay Encryption.}
 
-Delay Encryption has some intersting applications, of which we mention
-two.
+We already mentioned the two main applications of Time-lock puzzles. %
+We review here how Delay Encryption offers better solutions.
 
-\paragraph{Vickrey auctions.} Sealed bid auctions are easily
-implemented using standard public key encryption: each bidder seals
-its bid by encrypting it under a random public key; when the auction
-is over it publishes the secret key to reveal the bid.
-
-This design has one flaw in contexts where it is required that all
-bidders reveal their bids at the end of the auction. %
-For example, in Vickrey auctions, the highest bidder wins the auction,
-but only pays the price of the second highest bid. %
-If at the end of the auction some bidders refuse to reveal their bid,
-the result of the auction may be invalid.
-
-This problem is difficult to solve using standard public key
-cryptography, as it obviously requires some form of key escrow. %
+\paragraph{Vickrey auctions.} 
+Sealed bid auctions are easily implemented with standard commitments:
+in the bidding phase each bidder commits to its bid; later, in the
+tallying phase each bidder opens their commitment. %
+However this solution is problematic when some bidders may refuse to
+open their commitments.
+   
 Delay Encryption provides a very natural solution: at the beginning of
 the auction an \emph{auction id} is selected using some unpredictable
 and unbiased randomness, e.g., coming from a randomness beacon. %
@@ -190,7 +251,7 @@ id must be unpredictable and unbiased: if it is not, someone may start
 computing the session key before anyone else can, and thus break the
 delay property. %
 Fortunately, this requirement is easily satisfied by using randomness
-beacons, which accessorily can be implemented using VDFs.
+beacons, which, conveniently, can be implemented using VDFs.
 
 \subsubsection{Plan.}
 We start by defining Delay Encryption in
@@ -1154,3 +1215,4 @@ Delay Encryption, in particular quantum-resistant ones.
 % LocalWords:  isogenies Frobenius isogeny subgraphs distorsion
 % LocalWords:  prover soundess sequentiality quaternion projective
 
+% LocalWords:  homomorphic
