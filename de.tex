@@ -768,9 +768,11 @@ we now publish only Pedersen commitments
  with $x,y$ secret and random,
 along with a proof-of-knowledge for $(x,y)$ such that 
   $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
-We take $x \ne y$ to avoid a security proof, but $x=y$ simplifies
-our proof slightly to be merely a Schnorr signature in the target group.
-In this, we ask verifiers to compute four parings, which only doubles
+In this, verifiers check that $X \ne P'$ and $Y \ne Q'$,
+along with verifying the prove-of-knowledge.
+We can even take $x=y$ at which point our proof simplifies slightly
+to be merely a Schnorr signature in the target group.
+We ask verifiers to compute four parings, which only doubles
 the verifier time.
 % Also, four hash-to-curve operations, and 
 % four-ish scalar multiplications in the target group.
