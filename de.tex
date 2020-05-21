@@ -775,7 +775,7 @@ We publish
 At this point, our verifier now checks 
 \begin{itemize}
 \item $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
-\item non-triviality $Y \ne e(X,Q)$ and $X \ne e(P,Y)$ of the commitments, and
+\item non-triviality $Y' \ne e(X,Q)$ and $X' \ne e(P,Y)$ of the commitments, and
 \item the proof $c = H( e_N^{i-1}(P,Q') \| e_N^{i-1}(P,Q') \| X' \| Y' \| (X')^c e_N^{i-1}(P,Q')^{s_X} \| (Y')^c e_N^{i-1}(P,Q')^{s_Y} )$.
 \end{itemize}
 In this, we ask verifiers to compute four parings, which only doubles
@@ -783,6 +783,23 @@ the verifier time.
 % Also, four hash-to-curve operations, and 
 % four-ish scalar multiplications in the target group.
 % ($e_N^i(P',Q)$, $e_N^{i-1}(P,Q')$, $e_N^i(X,Q)$, $e_N^{i-1}(P,Y)$)
+
+We establish with the proof of knowledge that $X'$ and $Y'$ have
+the desired form, assuming CDH in $G_T$ and $H$ being a random oracle.
+% https://www.di.ens.fr/david.pointcheval/Documents/Papers/2000_joc.pdf
+% see: https://crypto.stackexchange.com/questions/48616/prove-the-security-of-schnorrs-signature-scheme
+% I doubt https://eprint.iacr.org/2013/418.pdf helps
+We then apply the non-triviality check to deduce that some such 
+ $X - x P' = \psi_i(P) \in E_i[(N,\pi-1)]$ and
+ $Y - y Q' = \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$
+exist, thanks to the strong bilinear Diffie-Hellman assumption (SBDH).
+It now follows from bilinearity that $e_N^i(X,Q) = e_N^{i-1}(P,Y)$, as desired.
+
+We learn nothing about $X$ and $Y$ except for this pairing equation 
+because Pederson commitments are perfectly blinding and
+ our proof-of-knowledge is zero-knowledge under ROM.
+
+\smallskip
 
 For completeness, we also mention some other tools with which one
 might prove knowledge of this isogeny in zero knowledge, although none
