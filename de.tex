@@ -785,13 +785,15 @@ seem to be competitive with the technique above.
 First, there exists a rapidly expanding SNARK toolbox from which
 one could preform $\F_p$ arithmetic inside the SNARK to check the
 verification conditions 2 and 3 directly.  
-Since the instantiation of the delay function may impose some restrictions on $p$,
-one cannot necessarily select it using the Cocks-Pinch method to provide a
-pairing friendly elliptic curve with group order $p$, like in \cite{ZEXE}. % https://eprint.iacr.org/2018/962.pdf
-Alternatively, one might optimize $\F_p$ arithmetic directly using polynomial
-commitments, like in \cite{plookup}. % https://eprint.iacr.org/2020/315.pdf
+As instantiating the delay function imposes restrictions on $p$,
+one cannot necessarily select $p$ using the Cocks-Pinch method to
+provide a pairing friendly elliptic curve with group order $p$, 
+like in \cite{ZEXE}. % https://eprint.iacr.org/2018/962.pdf
+There are optimisations for arithmetic in arbitrary $\F_p$ 
+however, especially using polynomial commitments,
+like in \cite{plookup}. % https://eprint.iacr.org/2020/315.pdf
 
-Second, there are some well known (post-quantum) isogenies based proofs:
+Second, there are well known post-quantum isogenies based proofs:
 \begin{description}
 \item[SIDH-style proofs~\cite{defeo+jao+plut12}] %
   are very inconvenient, because they require primes of a specific
