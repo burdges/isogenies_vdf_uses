@@ -926,7 +926,7 @@ In our case, all three points (in projective coordinates) $(0:1)$,
 $(\alpha:1)$ and $(1:\alpha)$, are defined over $\F_p$, we thus choose
 to distinguish one additional point by writing the curves as
 \[E_\alpha \;:\; y^2 = x(x-\alpha)(x - 1/\alpha),\] %
-with $(\alpha+1)^2\ne\pm 2$. %
+with $\alpha\ne0,\pm 1$. %
 We call this a \emph{semi-Montgomery form}; although it is technically
 equivalent to the Montgomery form, $2$-isogeny formulas are expressed
 in it more easily. %
@@ -940,7 +940,7 @@ $(\alpha:1)$ as
   \phi_\alpha(x,y) = \left(x\frac{x\alpha - 1}{x - \alpha}, \dots\right),
 \end{equation}
 and its image curve is the Montgomery curve defined by
-$A = 4\alpha^2-2$. %
+$A = 2-4\alpha^2$. %
 By comparing with the multiplication-by-$2$ map on $E_\alpha$, we
 obtain the dual map to $\phi$ as
 \begin{equation}
@@ -969,7 +969,8 @@ For the given $A=4\alpha^2-2$, direct calculation shows that the two
 possible choices are
 \begin{equation}
   \label{eq:next-curve}
-  \alpha' = 2\alpha\left(\alpha \pm \sqrt{\alpha^2 - 1}\right) - 1.
+  \alpha' = 2\alpha\left(\alpha \pm \sqrt{\alpha^2 - 1}\right) - 1
+  = \left(\alpha \pm \sqrt{\alpha^2-1})\right)^2.
 \end{equation}
 As we know that $(0,0)$ generates the dual isogeny to $\phi_\alpha$,
 neither choice of $\alpha'$ will define a backtracking walk. %
@@ -977,8 +978,8 @@ Interestingly, Catryck and Decru~\cite{cryptoeprint:2019:1404} show
 that when $p=7\mod 8$, if $\alpha\in\F_p$, $\phi_\alpha$ is a
 horizontal isogeny (see definition in~\cite{cryptoeprint:2019:1404}),
 and $\alpha'$ is defined as
-\[\alpha' = 2\alpha\left(\alpha + \sqrt{\alpha^2 - 1}\right) - 1\]
-where $\sqrt{\alpha^2+-1}$ denotes the principal square root, then
+\[\alpha' = \left(\alpha + \sqrt{\alpha^2-1})\right)^2\]
+where $\sqrt{\alpha^2-1}$ denotes the principal square root, then
 $\alpha'\in\F_p$ and $\phi_{\alpha'}$ is horizontal too. %
 This gives a very simple algorithm to perform a non-backtracking
 $2$-isogeny walk staying in the $\F_p$-restricted isogeny graph, i.e.,
@@ -1003,7 +1004,7 @@ today around 1$\mu$s. %
 The winner of the Ethereum FPGA competition~\cite{ethereum-vdf},
 achieved a latency of 25ns for 2048-bits RSA arithmetic. %
 Assuming a pessimistic baseline of 50ns for one $2$-isogeny
-evaluation, for a target delay of $1$ hour an isogeny walk of length
+evaluation, for a target delay of $1$ hour we need an isogeny walk of length
 $\approx 7\cdot 10^{10}$. %
 That represents as many coefficients $\alpha$ to store, each occupying
 $\approx 1500$ bits, i.e., $\approx 16$TiB of storage!
@@ -1020,13 +1021,12 @@ If 2-isogenies can be evaluated in say 2ns then an isogeny VDF begins
 consuming the full memory bandwidth of current CPUs, which conceivably
 increases confidence in attackers computational limits. 
 
-An isogenies VDF could dramatically reduce storage requirements by
+An isogeny-based VDF could dramatically reduce storage requirements by
 doing repeated shorter evaluations, and simply hashing each output
 to be the input for the next evaluation.  We sacrifice verifier time
 by doing so, but verifiers remain fast since they still only compute
 two or three pairings, depending upon watermarking.  We caution however
-that this trick appears useless for Delay Encryption, which makes
-an evaluator designed for Delay Encryption far more expensive. 
+that this trick does not apply to Delay Encryption. 
 
 In~\cite{10.1007/978-3-030-34578-5_10}, De Feo \emph{et al.} describe
 an alternative implementation that divides the required storage by a
