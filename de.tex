@@ -572,6 +572,9 @@ Thus, the solution put forth in~\cite{10.1007/978-3-030-34578-5_10} is
 to generate the starting curve $E$ via a trusted setup, that first
 selects $\End(E)$, and then outputs $E$ and throws away the
 information about its endomorphism ring. %
+We stress that, given a random supersingular curve $E$, computing
+$\End(E)$ is a well known hard problem, upon which almost most of
+isogeny-based cryptography is founded. %
 We explain in the next section how to mitigate the inconvenience of
 having a trusted setup, using a distributed protocol.
 
@@ -696,9 +699,13 @@ computation that is expected to take in the order of
 seconds~\cite{10.1007/978-3-030-03332-3_15}.
 
 The setup is clearly secure as long as at least one participant is
-honest: indeed, since each $E_i$ is nearly uniformly distributed,
-computing its endomorphism ring is a generic endomorphism ring
-computation problem, unless a path to $E_0$ is known.
+honest. %
+Indeed it is well known that computing a path from $E_i$ to $E_0$ is
+equivalent to computing the endomorphism ring of
+$E_i$~\cite{kohel2014quaternion,10.1007/978-3-319-78372-7_11}, and,
+since $E_i$ is nearly uniformly random in the supersingular graph, the
+dishonest participants have no advantage in solving this problem
+compared to a generic attacker.
 
 This distributed computation scales linearly with the number of
 participants, each participant needing to check the proofs of the
