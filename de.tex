@@ -84,8 +84,8 @@ primitive where the holder of a trapdoor can encrypt (or decrypt)
 Recently, a revival of delay cryptography has been promoted by
 research on blockchains, in particular to the introduction of
 \emph{Verifiable Delay Functions (VDF)}~\cite{Boneh}, deterministic
-functions $f$ that can only be evaluated not only ``slowly'' but
-``sequentially'', but such that verifying that $y=f(x)$ is ``fast''. %
+functions $f$ that can only be evaluated  ``sequentially'' and ``slowly'',
+but such that verifying that $y=f(x)$ is ``fast''. %
 
 After their definition, VDFs quickly gained attention, prompting two
 independent solutions in the space of a few
@@ -98,7 +98,7 @@ One year later, another VDF, based on a different algebraic structure,
 was proposed by De Feo, Masson, Petit and
 Sanso~\cite{10.1007/978-3-030-34578-5_10}. %
 This VDF uses chains of supersingular isogenies as ``sequential slow''
-function, and pairings for efficient verification.
+functions, and pairings for efficient verification.
 
 In this work we introduce a new delay primitive, called Delay
 Encryption. %
@@ -226,7 +226,7 @@ algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
   $\Extract$ is expected to run in time \emph{exactly} $T$, see below.
 \item[$\Encaps(\pp,\id)\to (c,k)$.] %
   Takes the public parameters $\pp$ and a \emph{session identifier}
-  $\id\in\{0,1\}^*$, and outputs a \emph{cyphertext}
+  $\id\in\{0,1\}^*$, and outputs a \emph{ciphertext}
   $c\in\cipherspace$ and a \emph{key} $k\in\keyspace$. %
   $\Encaps$ must run in time $\poly(\lambda)$.
 \item[$\Decaps(\pp,\id,\idk,c)\to k$.] %
@@ -375,7 +375,7 @@ The two variants only differ in the way the isogeny walk is set up,
 and in minor details of the verification; these differences will be
 irrelevant to us.
 
-The delay property of this VDF rest, roughly speaking, on the
+The delay property of this VDF rests, roughly speaking, on the
 assumption that a chain of $T$ isogenies of small prime degree $\ell$
 cannot be computed more efficiently than by going through each of the
 isogenies one at a time, sequentially. %
@@ -543,7 +543,7 @@ known attacks have exponential difficulty in the security parameter
 $\lambda$. %
 Given that (total) attacks successfully compute decapsulation in
 exponential time in $\lambda$, it is evident that the delay parameter
-$T$ must grow at most subexponentially $\lambda$.
+$T$ must grow at most subexponentially in $\lambda$.
 
 \paragraph{Shortcut attacks} aim at computing a shorter path
 $\psi:E\to E'$ in the isogeny graph from the knowledge of
@@ -655,7 +655,7 @@ several participants, ensuring through a multi-party computation that,
 if at least one participant is honest, then the setup can be trusted.
 
 Ethereum is notoriously investing in the RSA-based VDF with
-Wesolowski's proof\cite{ethereum-vdf,Wesolowski}, which is known to
+Wesolowski's proof~\cite{ethereum-vdf,Wesolowski}, which is known to
 require a trusted setup. %
 To generate parameters, the Ethereum network will need to run a
 distributed RSA modulus generation, for which all available techniques
@@ -828,7 +828,7 @@ evaluator.
 Concretely, given parameters $\phi:E\to E'$ and $(P,\phi(P))$, the
 isogeny walk is split into two halves of equal size
 $\phi_1:E\to \Emid$ and $\phi_2:\Emid\to E'$ so that
-$\phi=\phi_2\circ\phi_1$, and $\phi_1(P)$ is . %
+$\phi=\phi_2\circ\phi_1$, and $\phi_1(P)$ is added to the public parameters. %
 Each evaluator then generates a secret key $s\in\Z/N\Z$ and a public
 key $s\phi_1(P)$. %
 When evaluating $\hat\phi=\hat\phi_1\circ\hat\phi_2$ at a point
@@ -856,7 +856,7 @@ target a specific evaluator, by generating a random $u\in\Z/N\Z$, and
 choosing $us\phi_1(P)$ as public key. %
 Then, any proof $s\Qmid$ for the legitimate evaluator is easily
 transformed to a proof $us\Qmid$ for the usurper. %
-This attack is easily countered by having all evaluator publish a
+This attack is easily countered by having all evaluators publish a
 zero-knowledge proof of knowledge of their secret exponent $s$, along
 with their public key $s\phi_1(P)$. %
 Like in the previous section, this proof of knowledge of the secret
