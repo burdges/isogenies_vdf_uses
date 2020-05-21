@@ -761,18 +761,24 @@ firm ground.
 We make this zero-knowledge easily enough however: 
 we need two additional independent points
 $P',Q' \gets H_2(E_{i-1},E_i)$ with
- $P' \in E_i[(N,\pi-1)]$ and $Q' \in E_{i-1}[(N,\pi+1)]$,
-we now publish only Pedersen commitments 
+ $P' \in E_i[(N,\pi-1)]$ and $Q' \in E_{i-1}[(N,\pi+1)]$.
+We now choose $x,y$ secret and publish a proof of knowledge for $(x,y)$ such that
+$$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
+We publish 
+\begin{itemize}
+\item two Pedersen commitments 
  $X = x P' + \psi_i(P) \in E_i[(N,\pi-1)]$ and
- $Y = y Q' + \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$
- with $x,y$ secret and random,
-along with a proof-of-knowledge for $(x,y)$ such that 
-  $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
-In this, verifiers check that $X \ne P'$ and $Y \ne Q'$,
-along with verifying the prove-of-knowledge.
-We can even take $x=y$ at which point our proof simplifies slightly
-to be merely a Schnorr signature in the target group.
-We ask verifiers to compute four parings, which only doubles
+ $Y = y Q' + \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$,
+\item two public keys $X' = e_N^{i-1}(P,Q')^y$ and $Y' = e_N^i(P',Q)^x$, and
+\item two Schnorr proof of knowledge $(c,s_X,s_Y)$ for $x$ in $X'$ and $y$ in $Y'$.
+\end{itemize}
+At this point, our verifier now checks 
+\begin{itemize}
+\item $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
+\item that $Y' ≠ e(X,Q)$  $X' ≠ e(P,Y)$, and
+\item the proof $c = H( e_N^{i-1}(P,Q') \| e_N^{i-1}(P,Q') \| X' \| Y' \| (X')^c e_N^{i-1}(P,Q')^{s_X} \| (Y')^c e_N^{i-1}(P,Q')^{s_Y} )$.
+\end{itemize}
+In this, we ask verifiers to compute four parings, which only doubles
 the verifier time.
 % Also, four hash-to-curve operations, and 
 % four-ish scalar multiplications in the target group.
