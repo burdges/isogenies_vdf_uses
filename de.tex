@@ -732,7 +732,7 @@ easily be integrated in the hardware design at a later stage.
 
 Ignoring zero-knowledge temporarily, Eq.~\eqref{eq:adjoin} already
 provides a proof of knowledge of an isogeny $\psi_i:E_{i-1} \to E_i$,
-and implicitly its dual $\hat\phi_i: E_i \to E_{i-1}$.  
+and implicitly of its dual $\hat\psi_i: E_i \to E_{i-1}$.  
 We can instantiate this proof as follows:
 \begin{enumerate}
 \item Hash the curves $E_{i-1},E_i$ to a pair of points
@@ -741,35 +741,32 @@ We can instantiate this proof as follows:
 \end{enumerate}
 Then verification consists of simply:
 \begin{enumerate}
-\item Compute $P,Q\gets H(E_{i-1},E_i)$,
+\item Compute $P,Q\gets H_1(E_{i-1},E_i)$,
  % with $P \in E_{i-1}[(N,\pi+1)]$ and $Q\in E_i[(N,\pi-1)]$,
 \item Check that $\psi_i(P)\in E_i[(N,\pi-1)]$ and
   $\hat\psi_i(Q)\in E_{i-1}[(N,\pi+1)]$;
 \item Check that
   $e_N^i(\psi_i(P),Q) = e_N^{i-1}(P,\hat\psi_{i-1}(Q))$.
 \end{enumerate}
-We remark that while this proves knowledge of an isogeny
-$E_{i-1} \to E_i$, under an appropriate computational assumption,
-it proves nothing about the isogeny's degree.
 
-This proof is compact, requiring only two elements of $\F_p$,
-and efficient because computing $\psi_i(P),\hat\psi_i(Q)$ only adds a
-small overhead to the computation of $\psi_i$, and 
-verification takes essentially two pairing computations. %
-It is not however zero-knowledge because we require some SIDH style
-assumptions that $\psi_i(P)$ and $\hat\psi_i(Q)$, or even the
-pairings, leak nothing about the isogeny, and thus the security of
-the trusted setup stands on a less firm ground.
+This proof is compact, requiring only two elements of $\F_p$, and
+efficient because computing $\psi_i(P),\hat\psi_i(Q)$ only adds a
+small overhead to the computation of $\psi_i$, and verification takes
+essentially two pairing computations. %
+It is not however zero-knowledge because $\psi_i(P)$ and
+$\hat\psi_i(Q)$, and even the pairing values, leak some information on
+$\psi_i$, and thus the security of the trusted setup stands on a less
+firm ground.
 
 We make this zero-knowledge easily enough however: 
-We need two additional independent points
-$P',Q' \gets H(E_{i-1},E_i)$ with
+we need two additional independent points
+$P',Q' \gets H_2(E_{i-1},E_i)$ with
  $P' \in E_i[(N,\pi-1)]$ and $Q' \in E_{i-1}[(N,\pi+1)]$,
-We now publish only Pedersen commitments 
+we now publish only Pedersen commitments 
  $X = x P' + \psi_i(P) \in E_i[(N,\pi-1)]$ and
  $Y = y Q' + \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$
  with $x,y$ secret and random,
-along with a prove-of-knowledge for $(x,y)$ such that 
+along with a proof-of-knowledge for $(x,y)$ such that 
   $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
 We take $x \ne y$ to avoid a security proof, but $x=y$ simplifies
 our proof slightly to be merely a Schnorr signature in the target group.
@@ -779,25 +776,26 @@ the verifier time.
 % four-ish scalar multiplications in the target group.
 % ($e_N^i(P',Q)$, $e_N^{i-1}(P,Q')$, $e_N^i(X,Q)$, $e_N^{i-1}(P,Y)$)
 
-Altough they all sounds unnecessarily complex and unpleasantly slow,
-there exist numerous other tools with which one might prove knowledge
-of this isogeny:
+For completeness, we also mention some other tools with which one
+might prove knowledge of this isogeny in zero knowledge, although none
+seem to be competitive with the technique above.
  
 First, there exists a rapidly expanding SNARK toolbox from which
 one could preform $\F_p$ arithmetic inside the SNARK to check the
 verification conditions 2 and 3 directly.  
-One cannot necessarily select $p$ using Cocks-Pinch to provide a
+Since the instantiation of the delay function may impose some restrictions on $p$,
+one cannot necessarily select it using the Cocks-Pinch method to provide a
 pairing friendly elliptic curve with group order $p$, like in \cite{ZEXE}. % https://eprint.iacr.org/2018/962.pdf
-One might optimise $\F_p$ arithmetic directly using polynomial
+Alternatively, one might optimize $\F_p$ arithmetic directly using polynomial
 commitments, like in \cite{plookup}. % https://eprint.iacr.org/2020/315.pdf
 
-Second, there are isogenies based proofs:
+Second, there are some well known (post-quantum) isogenies based proofs:
 \begin{description}
 \item[SIDH-style proofs~\cite{defeo+jao+plut12}] %
   are very inconvenient, because they require primes of a specific
   form, and severely limit the length of pseudo-random walks. %
-  On top of that, they are very inefficient. %
-  We advise against using them.
+  On top of that, they are very inefficient, and do not have perfect
+  zero-knowledge. %
 \item[SeaSign-style proofs~\cite{10.1007/978-3-030-17659-4_26}] %
   have sizes in the hundred of kilobytes, and their generation and
   verification are extremely slow (dozens of hours). %
