@@ -775,7 +775,7 @@ We publish
 At this point, our verifier now checks 
 \begin{itemize}
 \item $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
-\item that $Y' ≠ e(X,Q)$  $X' ≠ e(P,Y)$, and
+\item non-triviality $Y \ne e(X,Q)$ and $X \ne e(P,Y)$ of the commitments, and
 \item the proof $c = H( e_N^{i-1}(P,Q') \| e_N^{i-1}(P,Q') \| X' \| Y' \| (X')^c e_N^{i-1}(P,Q')^{s_X} \| (Y')^c e_N^{i-1}(P,Q')^{s_Y} )$.
 \end{itemize}
 In this, we ask verifiers to compute four parings, which only doubles
