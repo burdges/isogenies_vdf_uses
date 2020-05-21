@@ -1021,9 +1021,11 @@ throughputs of the order of several GiB/s. %
 % state drives in parallel, this solution may turn out to be unpractical
 % and expensive.
 
-If 2-isogenies can be evaluated in say 2ns then an isogeny VDF begins
-consuming the full memory bandwidth of current CPUs, which conceivably
-increases confidence in attackers computational limits. 
+At present, we do not know any configuration that pushes these
+2-isogeny computations into being memory bandwidth bound. 
+In fact, computational adversaries only begin encountering current
+DRAM and CPU bus limits when going an order of magnitude faster
+than the hypothetical high speeds above.
 
 An isogeny-based VDF could dramatically reduce storage requirements by
 doing repeated shorter evaluations, and simply hashing each output
