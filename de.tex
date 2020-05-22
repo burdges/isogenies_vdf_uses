@@ -293,11 +293,12 @@ algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
 \item[$\Decaps(\pp,\id,\idk,c)\to k$.] %
   Takes the public parameters $\pp$, a \emph{session identifier}
   $\id$, a \emph{session key} $\idk$, a ciphertext $c\in\cipherspace$,
-  and outputs key $k\in\keyspace$. %
+  and outputs a key $k\in\keyspace$. %
   $\Decaps$ must run in time $\poly(\lambda)$.
 \end{description}
 
-A Delay Encryption scheme is correct if
+A Delay Encryption scheme is correct if for any
+$\pp=\Setup(\lambda,T)$ and any $\id$
 \[\bigl(c,\Decaps(\pp,\id,\idk,c)\bigr) = \Encaps(\pp,\id),\]
 whenever $\idk=\Extract(\pp,\id)$. %
 The security of Delay Encryption is defined similarly to that of
@@ -336,9 +337,9 @@ scheme has no secrets. %
   $b\in\{0,1\}$. %
   Finally, it outputs $(c,k_b)$.
 \item[Guess.] The algorithm $\mathcal{D}$ is run on input
-  $(c,k_b)$. %
+  $(c,k_b,\id)$. %
   The adversary wins if $\mathcal{D}$ terminates in time less than
-  $\Delta$, and the output is such that $\mathcal{D}(c,k_b) = b$.
+  $\Delta$, and the output is such that $\mathcal{D}(c,k_b,\id) = b$.
 \end{description}
 
 We stress that the game is intrinsically non-adaptive, in the sense
@@ -413,19 +414,22 @@ isogenies as delay functions, and the pairing
 equation~\eqref{eq:adjoin} as an efficient means to verify the
 computation. %
 Formally, they propose two related instantiations of VDF, following
-the same pattern:
-%
+the same pattern: they both use the same base field $\F_p$, where $p$
+is a prime of the form $p+1=N\cdot f$, chosen so that discrete
+logarithms in the group of $N$-th roots of unity in $\F_{p^2}$ (the
+target group of the pairing) are hard (i.e., $N\approx 2^{2\lambda}$
+and $p\sim 2^{\lambda^3}$). %
+They have a common trusted setup, independent of the delay parameter,
+and the usual functionalities of a VDF:
 \begin{description}
-\item[Trusted setup] takes as input a security parameter $\lambda$,
-  and produces a prime $N\approx 2^{2\lambda}$, a prime $p=N\cdot f+1$
-  for some cofactor $f\sim 2^{\lambda^3}$, and a random supersingular
-  elliptic curve $E$ over $\F_p$.
+\item[Trusted setup] selects a random supersingular elliptic curve $E$
+  over $\F_p$.
 \item[Setup] takes as input $p,N,E$, a delay parameter $T$, and
   performs a walk in an $\ell$-isogeny graph to produce a degree
   $\ell^T$ isogeny $\phi:E\to E'$.
   
-  It also computes a point $P\in E$ of order $N$, and outputs
-  $P,\phi(P)$.
+  It also computes a point $P\in E$ of order $N$. %
+  It  outputs $\phi,E',P,\phi(P)$.
 \item[Evaluation] takes as input a random point $Q\in E'[N]$ and outputs
   $\hat\phi(Q)$.
 \item[Verification] uses Eq.~\eqref{eq:adjoin} to check that the value
@@ -451,7 +455,8 @@ It is important to remark that both setup and evaluation in these VDFs
 are ``slow'' algorithms, indeed both need to evaluate an isogeny chain
 (either $\phi$, or $\hat\phi$) at one input point of order $N$; this
 is in stark contrast with VDFs based on groups of unknown order, where
-the complexity of setup does not depend on the delay parameter $T$.
+the setup, and thus its complexity, is independent on the delay
+parameter $T$.
 
 
 \subsection{Instantiation}
@@ -468,23 +473,20 @@ master secret is replaced by a long chain of isogenies, while session
 identifiers play the role of identities, so that producing the
 decryption key for a given identity becomes a slow operation.
 
-Concretely, $\Setup$ is identical to that of the VDF: it is split in a
-trusted and an untrusted part, the former being independent of the
-delay parameter $T$, and reusable for arbitrarily many untrusted
-setups.
+Concretely, setup is identical to that of the VDF. %
+A prime of the form $p=4\cdot N\cdot f - 1$ is fixed according to the
+security parameter, then setup is actually split into two algorithms:
+a $\TSetup$ independent of the delay parameter $T$ and reusable for
+arbitrarily many untrusted setups, and a $\Setup$ which depends on
+$T$.
 
 \begin{description}
 \item[$\TSetup(\lambda)$.]\
-  \begin{enumerate}
-  \item Generate primes $N$ and $p=4\cdot N\cdot f - 1$, such that
-    discrete logarithms in the subgroup of order $N$ of $\F_{p^2}$ are
-    $\lambda$-hard;
-  \item Generate a nearly uniformly random supersingular curve
-    $E/\F_p$ by starting from the curve $y^2=x^3+x$ and performing a
-    random walk in the $\F_p$-restricted supersingular graph;
-  \item Output $N,p,E$.
-  \end{enumerate}
-\item[$\Setup(N,p,E,T)$.]\
+  Generate a nearly uniformly random supersingular curve
+  $E/\F_p$ by starting from the curve $y^2=x^3+x$ and performing a
+  random walk in the $\F_p$-restricted supersingular graph. %
+  Output $E$.
+\item[$\Setup(E,T)$.]\
   \begin{enumerate}
   \item Perform an $\ell$-isogeny walk $\phi:E\to E'$ of length $T$;
   \item Select a random point $P\in E(\F_p)$ of order $N$, and compute
@@ -492,6 +494,14 @@ setups.
   \item Output $E',\phi,P,\phi(P)$.
   \end{enumerate}
 \end{description}
+
+We stress that known homomorphic time-lock puzzles~\cite{C:MalThy19}
+also require a one-shot trusted setup. %
+Furthermore, unlike constructions based on groups of unknown order,
+there is no evidence that trusted setup is unavoidable for
+isogeny-based delay functions, and indeed removing this trusted setup
+is an active area of
+research~\cite{10.1007/978-3-030-45724-2_18,love2019supersingular}.
 
 The isogeny chain $\phi$ in $\Setup$ can be generated by any of the
 two methods proposed by De Feo \emph{et al.}, the difference will be
@@ -502,27 +512,26 @@ however a generic (pseudorandom) walk over $\F_{p^2}$ will offer some
 partial protection against quantum attacks.
 
 Before defining the other routines, we need two hash functions. %
-The first, $H_1:\{0,1\}*\to E'[N]$, will be used to hash session
+The first, $H_1:\{0,1\}^*\to E'[N]$, will be used to hash session
 identifiers to points of order $N$ in $E'/\F_{p^2}$ (although the
 curve $E'$ may be defined over $\F_p$). %
-The second, $H_2:F_{p^2}\to\{0,1\}^\lambda$, will be a key derivation
+The second, $H_2:\F_{p^2}\to\{0,1\}^\lambda$, will be a key derivation
 function. %
-Let $\pp = (N,p,E,E')$, then we define:
 
 \begin{description}
-\item[$\Extract(\pp,\phi,\id)$.]\
+\item[$\Extract(E,E',\phi,\id)$.]\
   \begin{enumerate}
   \item Let $Q = H_1(\id)$;
   \item Output $\hat\phi(Q)$.
   \end{enumerate}
-\item[$\Encaps(\pp,P,\phi(P),\id)$.]\
+\item[$\Encaps(E,E',P,\phi(P),\id)$.]\
   \begin{enumerate}
   \item Select a uniformly random $r\in\Z/N\Z$;
   \item Let $Q = H_1(\id)$;
   \item Let $k=e_N'(\phi(P),Q)^r$;
   \item Output $(rP,H_2(k))$.
   \end{enumerate}
-\item[$\Decaps(\pp,\hat\phi(Q),rP)$.]\
+\item[$\Decaps(E,E',\hat\phi(Q),rP)$.]\
   \begin{enumerate}
   \item Let $k = e_N(rP,\hat\phi(Q))$.
   \item Output $H_2(k)$.
@@ -645,7 +654,7 @@ nearly uniformly without gaining knowledge of the endomorphism ring,
 should be a hard problem. %
 But there is no evidence it should be easy either, and several
 attempts have failed
-already~\cite{cryptoeprint:2019:1202,love2019supersingular}.
+already~\cite{10.1007/978-3-030-45724-2_18,love2019supersingular}.
 
 Another possibility hinted at in~\cite{10.1007/978-3-030-34578-5_10}
 would be to generate ordinary pairing friendly curves with large
@@ -681,7 +690,7 @@ parallelism, or it may have access to an architecture not available to
 the user (e.g., a quantum computer).
 
 These attacks are the most challenging to analyze, because standard
-complexity-theoretical techniques are of little help here. %
+com\-plexity-theoretical techniques are of little help here. %
 % (see, however~\cite{todo})
 On some level, this goal is unachievable: given a sufficiently
 abstract computational model, and a sufficiently powerful adversary,
@@ -842,7 +851,7 @@ At this point, our verifier now checks
 \item non-triviality $X' \ne e(X,Q)$ and $Y' \ne e(P,Y)$ of the commitments, and
 \item the proof
 $$ c = H( 
-  e_N^{i-1}(P,Q') \| e_N^i(P',Q') \| 
+  e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| 
   X' \| Y' \| 
   (X')^c e_N^{i-1}(P,Q')^{s_X} \| 
   (Y')^c e_N^i(P',Q)^{s_Y} 
@@ -964,9 +973,6 @@ transformed to a proof $us\Qmid$ for the usurper. %
 This attack is easily countered by having all evaluators publish a
 zero-knowledge proof of knowledge of their secret exponent $s$, along
 with their public key $s\phi_1(P)$. %
-Like in the previous section, this proof of knowledge of the secret
-exponent can be replaced with an efficient non-zero-knowledge one
-using pairings.
 
 
 \section{Challenges in implementing isogeny-based delay functions}
@@ -981,7 +987,7 @@ appealing: modular arithmetic has been studied for a long time, and we
 are reasonably confident that we know all useful algorithms and
 hardware in this respect; and the repeated application of the function
 $x\mapsto x^2$ is so simple that one may hope no better algorithm
-exists (see\cite{BernsteinSorenson07}, though).
+exists (see~\cite{BernsteinSorenson07}, though).
 
 Repeated squaring in class groups, already, raises more skepticism, as
 the arithmetic of class groups is a much less studied area. %
@@ -1017,10 +1023,10 @@ where $\alpha$ is a root of the polynomial $x^2+Ax+1$, and possibly
 lives in $\F_{p^2}$. %
 These three points define the three possible isogenies of degree $2$
 starting from $E$. %
-Montgomery form is almost unique, there being only three possible
+Montgomery form is almost unique, there being only six possible
 choices for the $A$ coefficient for a given isomorphism class,
 corresponding to the three possible choices for the point to send in
-$(0,0)$.
+$(0,0)$ (each taken twice).
 
 In our case, all three points (in projective coordinates) $(0:1)$,
 $(\alpha:1)$ and $(1:\alpha)$, are defined over $\F_p$, we thus choose
@@ -1127,7 +1133,7 @@ An isogeny-based VDF could dramatically reduce storage requirements by
 doing repeated shorter evaluations, and simply hashing each output
 to be the input for the next evaluation.  We sacrifice verifier time
 by doing so, but verifiers remain fast since they still only compute
-two or three pairings, depending upon watermarking.  We caution however
+two pairings.  We caution however
 that this trick does not apply to Delay Encryption. 
 
 In~\cite{10.1007/978-3-030-34578-5_10}, De Feo \emph{et al.} describe
@@ -1198,8 +1204,7 @@ lead to a meaningful security proof.
 Like the isogeny-based VDF, our Delay Encryption requires a trusted
 setup. %
 We described an efficient way to perform a distributed trusted setup,
-however more research is needed on the zero-knowledge proofs used in
-it.
+however more research is needed for putting this into practice.
 
 The implementation of delay functions from isogenies presents several
 practical challenges, such as needing very large storage for the
