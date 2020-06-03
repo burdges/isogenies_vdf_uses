@@ -58,7 +58,7 @@
 
   We give an instantiation of Delay Encryption by modifying Boneh and
   Frankiln's IBE scheme, where we replace the master secret key by a
-  long chain of isognies, as in the isogeny VDF of De Feo, Masson, 
+  long chain of isogenies, as in the isogeny VDF of De Feo, Masson, 
   Petit and Sanso. %
   Similarly to the isogeny-based VDF, our Delay Encryption requires a
   trusted setup before parameters can be safely used; our trusted
@@ -68,7 +68,7 @@
 
   We also discuss several topics around delay protocols
   based on isogenies that were left untreated by De Feo \emph{et al.},
-  namely: distributed trusted setup, watermarking, and implementations
+  namely: distributed trusted setup, watermarking, and implementation
   issues.
 \end{abstract}
 
@@ -90,7 +90,7 @@ but such that verifying that $y=f(x)$ is ``fast''. %
 After their definition, VDFs quickly gained attention, prompting two
 independent solutions in the space of a few
 weeks~\cite{Wesolowski,Pietrzak}. %
-Both proposals are based on repeated squaring in groups of known
+Both proposals are based on repeated squaring in groups of unknown
 order, and are similar in spirit to Rivest \emph{et al.}'s time-lock
 puzzle, however they use no trapdoor.
 
