@@ -115,7 +115,7 @@ They have the following two properties:
   in time much less than $T$.
 \item Puzzle solving is predictably slow and sequential: on input
   $\pi$, the message $m$ can be recovered by a circuit of depth
-  approximately $T$, and no a circuit of depth less than $T$ can
+  approximately $T$, and no circuit of depth less than $T$ can
   recover $m$ reliably.
 \end{itemize}
 
@@ -168,7 +168,7 @@ thus unpractical. %
 On top of that, it can be argued that time-lock puzzles are not the
 appropriate primitive to solve the problem: why do the tallyers need
 to run one of two different algorithms to open the puzzles? Are
-trapdoors really necessary. %
+trapdoors really necessary? %
 In this work, we introduce a new primitive, \emph{Delay Encryption},
 that arguably solves the problem more straightforwardly and elegantly.
 
@@ -181,7 +181,7 @@ sequential and slow derived private key issuance. %
 Recall that an IBE scheme is a public key encryption with three
 parties: a dealer who possess a master private-public key-pair, a
 receiver who has an \emph{identity} that acts as its public key (e.g.,
-its email address), and a senders who wants to send a message to the
+its email address), and a sender who wants to send a message to the
 receiver. %
 In IBE, receivers get their private keys from the dealer, who computes
 the private key associated to an identity using its master secret key;
@@ -335,7 +335,7 @@ scheme has no secrets. %
   $(c,k_0)\gets\Encaps(\pp,\id)$. %
   It then picks a uniformly random $k_1\in\keyspace$, and a random bit
   $b\in\{0,1\}$. %
-  Finally, it outputs $(c,k_b)$.
+  Finally, it outputs $(c,k_b,\id)$.
 \item[Guess.] The algorithm $\mathcal{D}$ is run on input
   $(c,k_b,\id)$. %
   The adversary wins if $\mathcal{D}$ terminates in time less than
