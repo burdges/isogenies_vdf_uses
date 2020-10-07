@@ -51,8 +51,8 @@
   efficient instantation based on isogenies of supersingular curves
   and pairings. %
   Delay Encryption is related to Time-lock Puzzles and Verifiable
-  Delay Functions, and can be roughly described as ``identity based
-  encryption with slow derived private key issuance''. %
+  Delay Functions, and can be roughly described as ``time-lock
+  identity based encryption''. %
   It has several applications in distributed protocols, such as
   sealed bid Vickrey auctions and electronic voting.
 
@@ -176,37 +176,35 @@ that arguably solves the problem more straightforwardly and elegantly.
 \subsubsection{Delay Encryption.}
 Delay Encryption is related to both Time-lock puzzles and VDFs,
 however it does not seem to be subsumed by either. %
-It can be roughly described as Identity Based Encryption (IBE) with
-sequential and slow derived private key issuance. %
-Recall that an IBE scheme is a public key encryption with three
-parties: a dealer who possess a master private-public key-pair, a
-receiver who has an \emph{identity} that acts as its public key (e.g.,
-its email address), and a sender who wants to send a message to the
-receiver. %
-In IBE, receivers get their private keys from the dealer, who computes
-the private key associated to an identity using its master secret key;
-senders encrypt messages to the receivers using both the master public
-key and the identity of the receiver; receivers decrypt using the
-master public key and their private key.
+It can be viewed as a time-lock analogue of Identity Based Encryption,
+where the derivation of individual private keys is sequential and
+slow. %
 
-In Delay Encryption there are no secrets. %
-Receivers become \emph{sessions}, with an associated \emph{session
-  identifier}; it is important that session identifiers are
-unpredictable, and are thrown away after the first use. %
-The dealer is replaced by a public functionality, that takes as input
-a session identifier and outputs a \emph{session key}; this
-functionality, named \emph{extraction}, is guaranteed to be sequential
-and slow. %
-Senders encrypt messages to the sessions by using the public
-parameters, and the identifier of the session. %
-After extraction produces its output, everyone can decrypt messages
-sent to the session using the session key.
+Instead of senders and receivers, Delay Encryption has a concept of
+\emph{sessions}. %
+A session is defined by a \emph{session identifier}, which must be a
+hard to predict string. %
+When a session identifier $\id$ is issued, anyone can \emph{encrypt to
+  the session} simply using this knowledge; decryption is however
+unfeasible without a \emph{session key}, which is to be derived from
+$\id$. %
+The defining feature of Delay Encryption is \emph{extraction}: the
+process of deriving a session key from a session identifier. %
+Extraction must be a sequential and slow operation, designed to run in
+time $T$ and no less for almost any $\id$.
+
+Since there are no secrets in Delay Encryption, anyone can run
+extraction. %
+It is thus important that session identifiers are hard to predict, and
+thrown away after the first use, otherwise an attacker may precompute
+session keys and immediately decrypt any ciphertext to the sessions.
 
 Delay Encryption is different from known Time-lock puzzles in that it
 has no trapdoor, and from VDFs in that it provides a fast encryption,
 rather than just a fast verification. %
 It has similar applications to Homomorphic time-lock puzzles, it is
-however more efficient and solves problems more straightforwardly.
+however more efficient and solves many problems more
+straightforwardly.
 
 
 \subsubsection{Applications of Delay Encryption.}
@@ -229,7 +227,7 @@ as senders of a Delay Encryption scheme. %
 In the meantime, anyone can start computing the auction key using the
 extraction functionality. %
 When the \emph{auction key} associated with the auction id is known,
-anyone can decrypt all bids and check the winner.
+anyone in possess of it can decrypt all bids and determine the winner.
 
 \paragraph{Electronic voting.} In electronic voting it is often
 required that the partial tally of an election stays unknown until the
@@ -237,7 +235,7 @@ end, to avoid influencing the outcome. %
 
 Delay Encryption again solves the problem elegantly: once the
 \emph{election id} is published, all voters can cast their ballot by
-encrypting under it. %
+encrypting to it. %
 Only after the election key is published, anyone can verify the
 outcome by decrypting the ballots. %
 
@@ -299,13 +297,16 @@ algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
 
 A Delay Encryption scheme is correct if for any
 $\pp=\Setup(\lambda,T)$ and any $\id$
-\[\bigl(c,\Decaps(\pp,\id,\idk,c)\bigr) = \Encaps(\pp,\id),\]
-whenever $\idk=\Extract(\pp,\id)$. %
+\[\idk=\Extract(\pp,\id)
+  \;\wedge\;
+  (c,k) = \Encaps(\pp,\id)
+  \;\Rightarrow\;
+  \Decaps(\pp,\id,\idk,c) = k.\]
 The security of Delay Encryption is defined similarly to that of
 public key encryption schemes, and in particular of identity-based
 ones; however one additional property is required of $\Extract$: that
-for a randomly selected identifier $\id$, the probability that
-$\Extract$ outputs $\idk$ in time less than $T$ is negligible. %
+for a randomly selected identifier $\id$, the probability that any
+algorithm outputs $\idk$ in time less than $T$ is negligible. %
 We now give the formal definition.
 
 \paragraph{The security game.} It is apparent from the definitions
@@ -324,7 +325,7 @@ Crucially, we do not bound the amount of parallelism of the Turing
 machine, or the breadth of the circuit, i.e., we focus on
 \emph{sequential delay} functions.
 
-We consider the following $\Delta$-IND-CCA game. %
+We consider the following $\Delta$-IND-CPA game. %
 Note that the game involves no oracles, owing to the fact that the
 scheme has no secrets. %
 %
@@ -336,7 +337,7 @@ scheme has no secrets. %
   It then picks a uniformly random $k_1\in\keyspace$, and a random bit
   $b\in\{0,1\}$. %
   Finally, it outputs $(c,k_b,\id)$.
-\item[Guess.] The algorithm $\mathcal{D}$ is run on input
+\item[Guess.]  Algorithm $\mathcal{D}$ is run on input
   $(c,k_b,\id)$. %
   The adversary wins if $\mathcal{D}$ terminates in time less than
   $\Delta$, and the output is such that $\mathcal{D}(c,k_b,\id) = b$.
@@ -347,11 +348,100 @@ that no computation is ``free'' after the adversary has seen the
 challenge.
 
 We say a Delay Encryption scheme is \emph{$\Delta$-Delay
-  Indistinguishable under Chosen Ciphertext Attacks} if, for any
+  Indistinguishable under Chosen Plaintext Attacks} if, for any
 efficient adversary running the precomputation in time
 $\poly(\lambda,T)$, the probability of winning the game is
 negligible. %
 Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
+
+\begin{remark}
+  Although it would be possible to define an analogue of chosen
+  ciphertext security for Delay Encryption, by giving algorithm
+  $\mathcal{D}$ access to a decryption oracle for $\id$, it is not
+  clear what kind of real world attacks this security notion could
+  model. Indeed, an instantaneous decryption oracle for $\id$ would go
+  against the idea that the decryption key $\idk$ is not known to
+  anyone before time $T$.
+
+  Similarly, one could imagine giving $\mathcal{D}$ access to an
+  extraction oracle, to allow it instantaneous adaptive extraction
+  queries after the challenge (note that in the precomputation phase
+  the adversary is free to run polynomially many non-adaptive
+  extractions). However it is not clear what component of a real world
+  system could provide such instantaneous extraction in practice,
+  since extraction is a public (and slow) operation.
+\end{remark}
+
+
+\subsection{Relationships with other primitives}
+
+\paragraph{Delay Encryption and Identity Based Encryption.}
+Although there is no formal relationship between Identity Base
+Encryption (IBE) and Delay Encryption, the similarity is evident. 
+
+Recall that an IBE scheme is a public key encryption with three
+parties: a dealer who possess a master private-public key-pair, a
+receiver who has an \emph{identity} that acts as its public key (e.g.,
+its email address), and a sender who wants to send a message to the
+receiver. %
+In IBE, the dealer runs an \emph{extraction} on the identity to
+generate the receiver's secret key. %
+The sender encrypts messages to the receiver using both the identity
+and the master public key. %
+The receiver decrypts using the master public key and the private key
+provided by the dealer.
+
+Delay Encryption follows the same blueprint, but has no secrets: there
+is no more a master key, but only a set of public parameters $\pp$. %
+Receiver identities become session identifiers $\id$: public but
+unpredictable. %
+The dealer is replaced by the public functionality
+$\Extract(\pp,\id)$: sequential and slow. %
+Senders encrypt messages to the sessions by using $\pp$ and $\id$. %
+After extraction has produced $\idk$, anyone can decrypt messages
+``sent'' to $\id$ by using $\idk$.
+
+The similarity with IBE is not fortuitous. %
+Indeed, the instantiation we present next is obtained from Boneh and
+Franklin's IBE scheme~\cite{doi:10.1137/S0097539701398521}, by
+replacing the master secret with a public, slow to evaluate, isogeny.
+This is analogous to the way De~Feo \emph{et al.}'s
+VDF~\cite{10.1007/978-3-030-34578-5_10} is obtained from the
+Boneh--Lynn--Shacham signature scheme~\cite{boneh+lynn+shacham04}.
+
+The similarity with IBE will be mirrored both in the reductions we
+discuss next, and in the security proof of our instantiation.
+
+\paragraph{Delay Encryption and Verifiable Delay Functions.}
+Boneh and Franklin attribute to Naor the observation that IBE implies
+signatures. %
+The construction is straightforward: messages are encoded to
+identities; to sign a message $\id$, simply output the derived private
+key $\idk$ associated to it. %
+To verify a signature $\idk$, encrypt a random message $m$ to $\id$,
+decrypt the resulting ciphertext using $\idk$ to obtain $m'$, and
+accept the signature if $m=m'$. %
+The signature scheme is existentially unforgeable if the IBE scheme is
+IND-ID-CCA.
+
+Precisely the same construction shows that Delay Encryption implies
+(sequential) Proof of Work. %
+Furthermore, if we define \emph{extraction soundness} as the property
+that
+\[\Decaps(\pp,\id,\idk,c) = \Decaps(\pp,\id,\idk',c)\]
+happens with negligible probability when $\idk\ne\idk'$, then we see
+that extraction sound Delay Encryption implies Verifiable Delay
+Functions. %
+It is easily verified that the derived VDF is $\Delta$-sequential if
+the Delay Encryption scheme is $\Delta$-IND-CPA.
+
+The signature scheme derived from Boneh and Franklin's IBE is
+equivalent to the Boneh--Lynn--Shacham scheme. %
+Unsurprisingly, the instantiation of Delay Encryption that we give in
+the next section is extraction sound, and the derived VDF is
+equivalent to De~Feo \emph{et al.}'s VDF.
+
+\paragraph{Delay Encryption and Time-lock Puzzles}
 
 
 \section{Delay Encryption from isogenies and pairings}
@@ -468,7 +558,7 @@ isogenies: signing becomes a ``slow'' operation and thus realizes the
 evaluation function, whereas verification stays efficient.
 
 Similarly, we obtain a Delay Encryption scheme by modifying the IBE
-scheme of Boneh and Franklin~\cite{10.1007/3-540-44647-8_13}: the
+scheme of Boneh and Franklin~\cite{doi:10.1137/S0097539701398521}: the
 master secret is replaced by a long chain of isogenies, while session
 identifiers play the role of identities, so that producing the
 decryption key for a given identity becomes a slow operation.
@@ -572,7 +662,7 @@ the $\Delta$-hardness of the \emph{isogeny shortcut
   $\Delta$, and $\mathcal{S}(Q) = \hat\phi(Q)$.
 \end{description}
 
-Unfortunately, it seems challenging to reduce $\Delta$-IND-CCA
+Unfortunately, it seems challenging to reduce $\Delta$-IND-CPA
 security of our Delay Encryption scheme to some $\Delta'$-hardness of
 an isogeny shortcut game. %
 Indeed, even given a more powerful adversary that is able to correctly
@@ -584,13 +674,13 @@ pairing inversion problem.
 It is clear that the isogeny shortcut models a weaker notion of
 security for Delay Encryption, one that states that it is hard to
 produce the output of $\Extract$ in time less than $\Delta$, however
-this is obviously insufficient to guarantee $\Delta'$-IND-CCA, as an
+this is obviously insufficient to guarantee $\Delta'$-IND-CPA, as an
 alternative way to compute the key $k$ is to evaluate $\phi(rP)$ and
 compute $k=e_N'(\phi(rP), Q)$. %
 In practice, computing $\phi(rP)$ is expected to be at least as
 ``slow'' as computing $\hat\phi(Q)$, however this idea is not captured
 by the isogeny shortcut game; and, even then, that would not exclude
-other ways to win the $\Delta$-IND-CCA game, without the ability to
+other ways to win the $\Delta$-IND-CPA game, without the ability to
 extract $\phi(rP)$ or $\hat\phi(Q)$ from a successful adversary.
 
 Replacing the isogeny shortcut game with a decision problem would not
