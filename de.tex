@@ -524,7 +524,23 @@ supersingular if the trace of its Frobenius endomorphism is divisible
 by $p$, i.e., if $\#E(\F_{p^n})=1\mod p$. %
 Over the algebraic closure of $\F_p$, there is only a finite number of
 isomorphism classes of supersingular curves, and every class contains
-a curve defined over $\F_{p^2}$.
+a curve defined over $\F_{p^2}$. %
+
+We will only work with supersingular curves $E/\F_{p^2}$, whose group
+of $\F_{p^2}$-rational points is isomorphic to ${(\Z/(p+1)\Z)}^2$. %
+For these curves, if $N$ is a divisor of $p+1$, we will denote by
+$E[N]$ the subgroup of $\F_{p^2}$-rational points of order $N$, which
+is isomorphic to ${(\Z/N\Z)}^2$.
+
+However, among these curves some will be curves $E/\F_p$ defined over
+$\F_p$, seen as curves over $\F_{p^2}$ (in algebraic jargon, with
+scalars extended from $\F_p$ to $\F_{p^2}$). %
+For this special case, if $N$ is an odd divisor of $p+1$, the
+$\F_{p^2}$-rational torsion subgroup $E[N]$ contains two distinguished
+subgroups: the subgroup $E[N]\cap E(\F_p)$ of points of order $N$
+defined over $\F_p$, which we also denote by $E[(N,\pi-1)]$; and the
+subgroup of points of order $N$ not in $E(\F_p)$, but with
+$x$-coordinate in $\F_p$, which we denote by $E[(N,\pi+1)]$.
 
 An isogeny is a group morphism of elliptic curves with finite
 kernel. %
@@ -585,7 +601,7 @@ and the usual functionalities of a VDF:
   performs a walk in an $\ell$-isogeny graph to produce a degree
   $\ell^T$ isogeny $\phi:E\to E'$.
   
-  It also computes a point $P\in E$ of order $N$. %
+  It also computes a point $P\in E(\F_p)$ of order $N$. %
   It  outputs $\phi,E',P,\phi(P)$.
 \item[Evaluation] takes as input a random point $Q\in E'[N]$ and outputs
   $\hat\phi(Q)$.
@@ -703,12 +719,11 @@ Eq.~\eqref{eq:adjoin} and the bilinearity of the pairing. %
   $Q-Q'\in \langle P\rangle$ are equivalent for encapsulation and
   decapsulation purposes, and thus an adversary only needs to compute
   the image of one of them under $\hat\phi$. %
-  However, thanks to $H_1$, the probability of two identities
-  colliding remains negligible (about $1/N$).
+  However, if we model $H_1$ as a random oracle, the probability of
+  two identities colliding remains negligible (about $1/N$).
   
   Alternatively, if $E'$ is defined over $\F_p$, one can restrict the
-  image of $H_1$ to the subgroup of $E'[N]$ annihilated by $\pi+1$,
-  where $\pi$ is the Frobenius endomorphsim, like
+  image of $H_1$ to $E'[(N,\pi+1)]$, like
   in~\cite{10.1007/978-3-030-34578-5_10}.
 \end{remark}
 
@@ -748,8 +763,8 @@ The \emph{bilinear isogeny shortcut game} is defined as follows:
 \begin{description}
 \item[Precomputation.] The adversary receives $p,N,E,E',\phi$, and
   outputs an algorithm $\mathcal{S}$.
-\item[Challenge.] The challenger outputs a uniformly random
-  $R\in E(\F_p)$ of order $N$, and a uniformly random $Q\in E'[N]$.
+\item[Challenge.] The challenger outputs uniformly random
+  $R\in E[(N,\pi-1)]$ and $Q\in E'[N]$.
 \item[Guess.] Algorithm $\mathcal{S}$ is run on $(R,Q)$. The adversary
   wins id $\mathcal{S}$ outputs
   $\mathcal{S}(R,Q) = e_N'(\phi(R),Q) = e_N(R,\hat\phi(Q))$.
@@ -789,7 +804,7 @@ scheme.
   the query.
 
   When $\mathcal{A}$ requests its challenge, $\mathcal{B}$ does the
-  same, receiving $R\in E(\F_p)$ of order $N$ and $Q\in E'[N]$. %
+  same, receiving $R\in E[(N,\pi-1)]$ and $Q\in E'[N]$. %
   It then draws a random string $s\in\{0,1\}^\lambda$, and challenges
   $\mathcal{A}$ with the tuple $(R,s,Q)$.
 
@@ -811,8 +826,7 @@ scheme.
   indistinguishable from the real world for $\mathcal{A}$. %
   Indeed, public parameters are distributed identically to a Delay
   Encryption scheme, and the point $R$ that is part of the challenge
-  is necessarily a multiple of $P$, since $E(\F_p)\cap E[N]$ is
-  cyclic. %
+  is necessarily a multiple of $P$, since $E[(N,\pi-1)]$ is cyclic. %
   The proof that the two probabilities are equal, then proceeds as in
   \cite[Lemma~4.3, Claim~1]{doi:10.1137/S0097539701398521}.
 
@@ -968,8 +982,9 @@ essentially trace back to the work of Boneh and
 Franklin~\cite{10.1007/BFb0052253}.
 
 Distributed RSA modulus generation is notoriously a difficult task:
-the cost is relatively high, and scales badly with the number of
-participants. %
+the cost is relatively high, scales badly with the number of
+participants, and the attempts at optimizing it have repeatedly led to
+subtle and powerful attacks~\cite{eth-octopus,eth-dogbyte}. %
 Worse still, specialized hardware for the delay function must be
 designed specifically for the generated modulus, which means that
 little design can be done prior to the distributed generation, and
@@ -985,9 +1000,8 @@ at its own turn, the following steps:
 \begin{enumerate}
 \item Participant $i$ checks all zero-knowledge proofs published by
   participants that preceded them;
-\item They perform a pseudorandom $\psi_i:E_{i-1}\to E_i$
-  walk of length $c\log(p)$ in the $\F_p$-restricted supersingular
-  graph;
+\item They perform a pseudorandom isogeny walk $\psi_i:E_{i-1}\to E_i$
+  of length $c\log(p)$ in the $\F_p$-restricted supersingular graph;
 \item They publish $E_i$, and a zero-knowledge proof that they know an
   isogeny $\psi:E_{i-1}\to E_i$.
 \end{enumerate}
@@ -1035,37 +1049,56 @@ easily be integrated in the hardware design at a later stage.
 We take a closer look at the last step each participant takes in the
 trusted setup: the proof of isogeny knowledge. %
 Ignoring zero-knowledge temporarily, Eq.~\eqref{eq:adjoin} already
-provides a proof of knowledge of an isogeny $\psi_i:E_{i-1} \to E_i$,
-and implicitly of its dual $\hat\psi_i: E_i \to E_{i-1}$.  
-We can instantiate this proof as follows:
+provides a proof of knowledge of a non-trivial relation between
+$E_{i-1}$ and $E_i$. %
+Let $H_1$ be a hash function mapping into
+$E_{i-1}[(N,\pi-1)] \times E_i[(N,\pi+1)]$, the proof proceeds as
+follows
 \begin{enumerate}
 \item Hash the curves $E_{i-1},E_i$ to a pair of points
-  $P\in E_{i-1}[(N,\pi-1)]$, $Q\in E_i[(N,\pi+1)]$;
+  $(P,Q) = H_1(E_{i-1},E_i)$;
 \item Publish $\psi_i(P), \hat\psi_i(Q)$.
 \end{enumerate}
-Then verification consists of simply:
+Then verification simply consists of:
 \begin{enumerate}
 \item Compute $P,Q\gets H_1(E_{i-1},E_i)$,
- % with $P \in E_{i-1}[(N,\pi+1)]$ and $Q\in E_i[(N,\pi-1)]$,
 \item Check that $\psi_i(P)\in E_i[(N,\pi-1)]$ and
   $\hat\psi_i(Q)\in E_{i-1}[(N,\pi+1)]$;
-\item Check that
-  $e_N^i(\psi_i(P),Q) = e_N^{i-1}(P,\hat\psi_{i-1}(Q))$.
+\item Check that $e_N^i(\psi_i(P),Q) = e_N^{i-1}(P,\hat\psi_i(Q))$.
 \end{enumerate}
 
-This proof is compact, requiring only two elements of $\F_p$, and
+This proof is compact, requiring only four elements of $\F_p$, and
 efficient because computing $\psi_i(P),\hat\psi_i(Q)$ only adds a
 small overhead to the computation of $\psi_i$, and verification takes
 essentially two pairing computations. %
-It is not however zero-knowledge because $\psi_i(P)$ and
-$\hat\psi_i(Q)$, and even the pairing values, leak some information on
-$\psi_i$, and thus the security of the trusted setup stands on a less
-firm ground.
 
-We turn this into a zero-knowledge proof easily enough however: 
-we need two additional independent points
-$P',Q' \gets H_2(E_{i-1},E_i)$ with
- $P' \in E_i[(N,\pi-1)]$ and $Q' \in E_{i-1}[(N,\pi+1)]$.
+\begin{remark}
+  While we believe that an adversary not knowing an isogeny from
+  $E_{i-1}$ to $E_i$ has a negligible probability of convincing a
+  verifier in the protocol above, it is not clear what kind knowledge
+  is \emph{exactly} proved by it. %
+  Ideally, we would like to prove that, given an algorithm that passes
+  verification with non negligible probability, one can extract a
+  description of some isogeny $\psi':E_{i-1}\to E_{i}$. %
+
+  However, no such algorithm is currently known. %
+  Related problems have been studied in the context of cryptanalyses
+  of SIDH, under the name of ``torsion point
+  attacks''~\cite{10.1007/978-3-319-70697-9_12,cryptoeprint:2019:1291,cryptoeprint:2020:633},
+  however these algorithms crucially rely on the knowledge of the
+  endomorphism ring of $E_{i-1}$, something we cannot exploit here.
+
+  The only way out is apparently to define a non-falsifiable
+  ``knowledge of isogeny'' assumption, which would tautologically
+  state that the protocol above is indeed a proof of knowledge of an
+  isogeny. %
+  We defer investigation of this type of assumptions to future work.
+\end{remark}
+
+To turn the protocol above into a zero-knowledge proof, we use an
+additional hash function $H_2$ into
+$E_i[(N,\pi-1)]\times E_{i-1}[(N,\pi+1)]$, and let
+$P',Q' \gets H_2(E_{i-1},E_i)$. %
 We now choose $x,y$ secret and publish a NIZK for $(x,y)$ satisfying
 $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
 More precisely, we publish:
@@ -1197,7 +1230,7 @@ $\frac{\phi_1(\hat\phi(Q))}{\deg\phi_1}$. %
 Either way, they would perform at least half as much work as if they
 had legitimately evaluated the function.
 
-As described here, it is possible, nevertheless, for a usurper to
+It is possible, nevertheless, for a usurper to
 target a specific evaluator, by generating a random $u\in\Z/N\Z$, and
 choosing $us\phi_1(P)$ as public key. %
 Then, any proof $s\Qmid$ for the legitimate evaluator is easily
@@ -1433,7 +1466,8 @@ Verifiable Delay Functions and Time-lock puzzles.
 Like the isogeny-based VDF, our Delay Encryption requires a trusted
 setup. %
 We described an efficient way to perform a distributed trusted setup,
-however more research is needed for putting this into practice.
+however the associated zero-knowledge property relies on a
+non-falsifiable assumption which requires more scrutiny.
 
 The implementation of delay functions from isogenies presents several
 practical challenges, such as needing very large storage for the
