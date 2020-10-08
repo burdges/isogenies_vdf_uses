@@ -373,7 +373,7 @@ Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
 \end{remark}
 
 
-\subsection{Relationships with other primitives}
+\subsection{Relationship with other primitives}
 
 \paragraph{Delay Encryption and Identity Based Encryption.}
 Although there is no formal relationship between Identity Base
@@ -418,20 +418,20 @@ signatures. %
 The construction is straightforward: messages are encoded to
 identities; to sign a message $\id$, simply output the derived private
 key $\idk$ associated to it. %
-To verify a signature $\idk$, encrypt a random message $m$ to $\id$,
-decrypt the resulting ciphertext using $\idk$ to obtain $m'$, and
-accept the signature if $m=m'$. %
+To verify a signature $(\id,\idk)$: run encapsulation to $\id$
+obtaining a random $(c,k)$, decapsulate $(\id,\idk,c)$ to obtain $k'$,
+and accept the signature if $k=k'$. %
 The signature scheme is existentially unforgeable if the IBE scheme is
-IND-ID-CCA.
+indistinguishable under chosen chiphertext attacks.
 
 Precisely the same construction shows that Delay Encryption implies
 (sequential) Proof of Work. %
 Furthermore, if we define \emph{extraction soundness} as the property
+that adversaries have negligible chance of finding $\idk\ne\idk'$ such
 that
-\[\Decaps(\pp,\id,\idk,c) = \Decaps(\pp,\id,\idk',c)\]
-happens with negligible probability when $\idk\ne\idk'$, then we see
-that extraction sound Delay Encryption implies Verifiable Delay
-Functions. %
+\[\Decaps(\pp,\id,\idk,c) = \Decaps(\pp,\id,\idk',c),\]
+then we see that extraction sound Delay Encryption implies Verifiable
+Delay Functions. %
 It is easily verified that the derived VDF is $\Delta$-sequential if
 the Delay Encryption scheme is $\Delta$-IND-CPA.
 
@@ -441,7 +441,74 @@ Unsurprisingly, the instantiation of Delay Encryption that we give in
 the next section is extraction sound, and the derived VDF is
 equivalent to De~Feo \emph{et al.}'s VDF.
 
-\paragraph{Delay Encryption and Time-lock Puzzles}
+\paragraph{Delay Encryption and Time-lock puzzles.}
+Both Delay Encryption and Time-lock puzzles permit a form of
+\emph{encryption to the future}: encrypt a message now, so that it can
+only be decrypted at a set time in the future. %
+There is no formal definition of Time-lock puzzles commonly agreed
+upon in the literature, it is thus difficult to say what they exactly
+are and how they compare to Delay Encryption.
+
+Bitansky \emph{et al.}~\cite{10.1145/2840728.2840745} define 
+Time-lock puzzles as two algorithms
+\begin{itemize}
+\item $\mathsf{Gen}(\lambda,T, s) \to Z$ that takes as input a delay parameter
+  $T$ and a solution $s\in\{0,1\}^\lambda$, and outputs a puzzle $Z$;
+\item $\mathsf{Solve}(Z) \to s$ that takes as input a puzzle $Z$ and
+  outputs the solution $s$;
+\end{itemize}
+under the constraints that $\mathsf{Gen}$ runs in time
+$\poly(\lambda,\log T)$ and that no algorithm computes $s$ from $Z$ in
+parallel time significantly less than $T$.
+
+One might be tempted to construct a Time-lock puzzle from Delay
+Encryption by defining $\mathsf{Gen}$ as follows:
+\begin{enumerate}
+\item Compute $\pp \gets \Setup(\lambda,T)$;
+\item Sample a random $\id\in\{0,1\}^\lambda$;
+\item Compute $(c,k) \gets \Encaps(\pp, \id)$;
+\item Compute $m = E_k(s)$;
+\item Return $(\pp,\id,c,m)$;
+\end{enumerate}
+where $E_k$ is a symmetric encryption scheme. %
+Then $\mathsf{Solve}$ is naturally defined as
+\begin{enumerate}
+\item Compute $\idk \gets \Extract(\pp,\id)$;
+\item Compute $k \gets \Decaps(\pp,\id,\idk,c)$;
+\item Return $s = D_k(m)$;
+\end{enumerate}
+where $D_k$ is the decryption routine associated to $D_k$. %
+
+However this fails to define a Time-lock puzzle in the sense above,
+because $\Setup$ can take time $\poly(\lambda,T)$ instead of
+$\poly(\lambda,\log T)$. %
+If we take $\Setup$ out of $\mathsf{Gen}$, though, we obtain something
+very similar to what Bitansky \emph{et al.} call Time-lock puzzles
+\emph{with pre-processing}, albeit slightly weaker.%
+\footnote{Bitansky \emph{et al.} require pre-processing to run in
+  sequential time $T\cdot\poly(\lambda)$, but parallel time only
+  $\poly(\lambda,\log T)$.}.
+
+We see no technical obstruction to having $\Setup$ run in time
+$\poly(\lambda,\log T)$, and thus being a strictly stronger primitive
+than Time-lock puzzles. %
+However our instantiation does not satisfy this stronger notion of
+Delay Encryption, and, lacking any other candidate, we prefer to keep
+our definitions steeping in reality.
+
+\medskip
+
+To summarize, Delay Encryption is a natural analogue of Identity Based
+Encryption in the world of time delay cryptography. %
+It requires Proofs of Work to exist, and a mild strengthening of it
+(which we are able to instantiate) implies Verifiable Delay
+Functions. %
+It also implies a weak form of Time-lock puzzles, and a strengthening
+of it (of which we know no instantiation) implies standard Time-lock
+puzzles. %
+At the same time, no dependency is known between Time-lock puzzles and
+Verifiable Delay Functions, indicating that Delay Encryption is
+possibly a stronger primitive than both.
 
 
 \section{Delay Encryption from isogenies and pairings}
