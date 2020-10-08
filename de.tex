@@ -603,8 +603,8 @@ cannot be computed more efficiently than by going through each of the
 isogenies one at a time, sequentially. %
 The case $\ell=2$ is very similar to repeated squaring in groups of
 unknown order as used by other VDFs~\cite{Wesolowski,Pietrzak} and
-time-lock puzzles~\cite{TLP}: in the latter one iterates $T$ times the
-function $x\mapsto x^2$, a polynomial of degree $2$; in the former one
+time-lock puzzles~\cite{TLP}: in groups, one iterates $T$ times the
+function $x\mapsto x^2$, a polynomial of degree $2$; in isogeny graphs, one
 iterates rational fractions of degree $2$. %
 See Section~\ref{sec:secure-impl-isog} for more details.
 
@@ -612,7 +612,7 @@ It is important to remark that both setup and evaluation in these VDFs
 are ``slow'' algorithms, indeed both need to evaluate an isogeny chain
 (either $\phi$, or $\hat\phi$) at one input point of order $N$; this
 is in stark contrast with VDFs based on groups of unknown order, where
-the setup, and thus its complexity, is independent on the delay
+the setup, and thus its complexity, is independent of the delay
 parameter $T$.
 
 
@@ -654,7 +654,7 @@ $T$.
 
 We stress that known homomorphic time-lock puzzles~\cite{C:MalThy19}
 also require a one-shot trusted setup. %
-Furthermore, unlike constructions based on groups of unknown order,
+Furthermore, unlike constructions based on RSA groups,
 there is no evidence that trusted setup is unavoidable for
 isogeny-based delay functions, and indeed removing this trusted setup
 is an active area of
@@ -715,9 +715,8 @@ Eq.~\eqref{eq:adjoin} and the bilinearity of the pairing. %
 
 \subsection{Security}
 
-The standard security hypothesis for isogeny-based delay schemes is
-the $\Delta$-hardness of the \emph{isogeny shortcut
-  game}~\cite{10.1007/978-3-030-34578-5_10}:
+To prove security of their VDF schemes, De~Feo \emph{et al.} defined
+the following \emph{isogeny shortcut game}:
 
 \begin{description}
 \item[Precomputation.] The adversary receives $N,p,E,E',\phi$, and
@@ -729,38 +728,113 @@ the $\Delta$-hardness of the \emph{isogeny shortcut
   $\Delta$, and $\mathcal{S}(Q) = \hat\phi(Q)$.
 \end{description}
 
-Unfortunately, it seems challenging to reduce $\Delta$-IND-CPA
-security of our Delay Encryption scheme to some $\Delta'$-hardness of
-an isogeny shortcut game. %
-Indeed, even given a more powerful adversary that is able to correctly
-compute $k=e_N(rP,\hat\phi(Q))$ in time $\Delta$ from the knowledge or
-$Q$ and $rP$, it is not clear how to efficiently extract the value of
-$\hat\phi(Q)$ from $k$, as this would amount to efficiently solving a
-pairing inversion problem.
+However, it is clear that the $\Delta$-hardness of this game is
+insufficient to prove $\Delta$-IND-CPA security of our Delay
+Encryption scheme. %
+Indeed, while the hardness of the isogeny shortcut obviously
+guarantees that the output of $\Extract$ cannot be computed in time
+less than $\Delta$, there is at least one other way to decapsulate a
+ciphertext $rP$, which consists in evaluating $\phi(rP)$ and computing
+$k=e_N'(\phi(rP), Q)$. %
+Computing $\phi(rP)$ is expected to be at least as ``slow'' as
+computing $\hat\phi(Q)$, however this fact is not captured by the
+isogeny shortcut game.
 
-It is clear that the isogeny shortcut models a weaker notion of
-security for Delay Encryption, one that states that it is hard to
-produce the output of $\Extract$ in time less than $\Delta$, however
-this is obviously insufficient to guarantee $\Delta'$-IND-CPA, as an
-alternative way to compute the key $k$ is to evaluate $\phi(rP)$ and
-compute $k=e_N'(\phi(rP), Q)$. %
-In practice, computing $\phi(rP)$ is expected to be at least as
-``slow'' as computing $\hat\phi(Q)$, however this idea is not captured
-by the isogeny shortcut game; and, even then, that would not exclude
-other ways to win the $\Delta$-IND-CPA game, without the ability to
-extract $\phi(rP)$ or $\hat\phi(Q)$ from a successful adversary.
+Instead, we define a new security assumption, analogous to the
+Bilinear Diffie-Hellman assumption used in standard pairing-based
+protocols. %
+The \emph{bilinear isogeny shortcut game} is defined as follows:
 
-Replacing the isogeny shortcut game with a decision problem would not
-help either, owing to the usual obstacle of decision problems being
-easy for pairings; indeed, the decision version of the shortcut game
-is easily decided by the verification procedure of the VDF mentioned
-above.
+\begin{description}
+\item[Precomputation.] The adversary receives $p,N,E,E',\phi$, and
+  outputs an algorithm $\mathcal{S}$.
+\item[Challenge.] The challenger outputs a uniformly random
+  $R\in E(\F_p)$ of order $N$, and a uniformly random $Q\in E'[N]$.
+\item[Guess.] Algorithm $\mathcal{S}$ is run on $(R,Q)$. The adversary
+  wins id $\mathcal{S}$ outputs
+  $\mathcal{S}(R,Q) = e_N'(\phi(R),Q) = e_N(R,\hat\phi(Q))$.
+\end{description}
 
-Faced with this difficulty, we simply chose to not provide a security
-proof, and leave the search for meaningful security reductions for
-future work.
+We say that the bilinear isogeny shortcut game is $\Delta$-hard if no
+adversary running the precomputation in time $\poly(\lambda,T)$
+produces an algorithm $\mathcal{S}$ that wins in time less than
+$\Delta$ with non-negligible probability. %
+The reduction to $\Delta$-IND-CPA of our Delay Encryption scheme
+closely follows the proof of security of Boneh and Franklin's IBE
+scheme.
 
-\subsubsection{Attacks.} We now shift our attention to attacks. %
+\begin{theorem}
+  The Delay Encryption scheme presented above is $\Delta$-IND-CPA
+  secure, assuming the $\Delta'$-hardness of the bilinear isogeny
+  shortcut game, with $\Delta\in\Delta' - o(\Delta')$, when $H_2$ is
+  modeled as a random oracle.
+
+  Concretely, suppose there is an efficient $\Delta$-IND-CPA adversary
+  $\mathcal{A}$ that has advantage $\epsilon$, and makes $q$ queries
+  to $H_2$ (including the queries made by the sub-algorithm
+  $\mathcal{D}$). Then there is an efficient algorithm $\mathcal{B}$
+  that wins the bilinear isogeny shortcut game with probability at
+  least $2\epsilon/q$ and delay $\Delta' = \Delta + q\cdot\poly(\lambda)$.
+\end{theorem}
+\begin{proof}
+  In the precomputation phase, when $\mathcal{B}$ receives the
+  parameters $p,N,E,E',\phi$, it draws a random $P\in E(\F_p)$ of
+  order $N$, and evaluates $\phi(P)$. %
+  It then passes $p,N,E,E',\phi,P,\phi(P)$ to $\mathcal{A}$ for its
+  own precomputation phase. %
+  Whenever $\mathcal{A}$ makes a call to $H_2(x)$, algorithm
+  $\mathcal{B}$ checks whether input $x$ has already been requested,
+  in which case it responds with the same answer previously given,
+  otherwise it responds with a uniformly sampled output and records
+  the query.
+
+  When $\mathcal{A}$ requests its challenge, $\mathcal{B}$ does the
+  same, receiving $R\in E(\F_p)$ of order $N$ and $Q\in E'[N]$. %
+  It then draws a random string $s\in\{0,1\}^\lambda$, and challenges
+  $\mathcal{A}$ with the tuple $(R,s,Q)$.
+
+  During the guessing phase, whenever $\mathcal{A}$ (actually,
+  $\mathcal{D}$) makes a call to $H_2$, algorithm $\mathcal{B}$
+  (actually, $\mathcal{S})$ responds as before. %
+  Finally, when $\mathcal{D}$ outputs its guess, $\mathcal{S}$ simply
+  takes a random entry among those that were queried to $H_2$.
+
+  Let $\mathcal{H}$ be the event that $\mathcal{A}$ (or $\mathcal{D}$)
+  queries $H_2$ on input $e_N(R,\hat\phi(Q))$. %
+  We prove that $\Pr(\mathcal{H}) \ge 2\epsilon$, which immediately
+  gives the claim of the theorem. %
+  To this end, we first prove that $\Pr(\mathcal{H})$ in the
+  simulation is equal to $\Pr(\mathcal{H})$ in the real attack; then
+  we prove that $\Pr(\mathcal{H})\ge 2\epsilon$ in the real attack.
+
+  To prove the first claim, it suffices to show that the simulation is
+  indistinguishable from the real world for $\mathcal{A}$. %
+  Indeed, public parameters are distributed identically to a Delay
+  Encryption scheme, and the point $R$ that is part of the challenge
+  is necessarily a multiple of $P$, since $E(\F_p)\cap E[N]$ is
+  cyclic. %
+  The proof that the two probabilities are equal, then proceeds as in
+  \cite[Lemma~4.3, Claim~1]{doi:10.1137/S0097539701398521}.
+
+  The proof that $\Pr(\mathcal{H})\ge 2\epsilon$ is identical to
+  \cite[Lemma~4.3, Claim~2]{doi:10.1137/S0097539701398521}. %
+  This proves the part of the statement on the winning probability of
+  $\mathcal{B}$.
+  
+  If Algorithm $\mathcal{D}$ runs in time less than $\Delta$,
+  algorithm $\mathcal{S}$ runs in time $\Delta$, plus the time
+  necessary for drawing the random string $s$ and for answering
+  queries to $H_2$. %
+  Depending on the computational model, a lookup in the table for
+  $H_2$ can take anywhere from $O(1)$ (e.g., RAM model) to $O(q)$
+  (e.g., Turing machine). %
+  We err on the safe side, and estimate that $\mathcal{S}$ runs in
+  time $\Delta + q\cdot\poly(\lambda)$.
+\end{proof}
+
+
+\subsection{Known Attacks}
+We now shift our attention to attacks. %
 As discussed in~\cite{10.1007/978-3-030-34578-5_10}, there are three
 types of known attacks: \emph{shortcut} attacks, discrete logarithm
 attacks, and attacks on the computation.
@@ -784,7 +858,7 @@ endomorphism ring of at least one of $E$ or $E'$ is known. %
 Indeed, in this case, the isogeny $\phi$ can be translated to an ideal
 class in the endomorphism ring, then smoothing techniques similar
 to~\cite{kohel2014quaternion} let us convert the ideal to one of
-smaller norm, and finally to an isogeny $\phi:E\to E'$ of smaller
+smaller norm, and finally to an isogeny $\psi:E\to E'$ of smaller
 degree.
 
 The only way out of these attacks is to select the starting curve $E$
@@ -828,14 +902,14 @@ Indeed, knowing $rP$, we obtain $r$ through a discrete logarithm, and
 then compute $k=e_N'(\phi(P),Q)^r$.
 
 Thanks to the efficiently computable pairing, the discrete logarithm
-can actually be solved in $\F_{p^2}$, which motivates taking $p,N$
-large enough to resist discrete logarithm computations. %
+can actually be solved in $\F_{p^2}$, which justifies taking $p,N$
+large enough to resist finite field discrete logarithm computations. %
 Obviously, this also shows that our scheme is easily broken by quantum
 computers. %
 See~\cite{10.1007/978-3-030-34578-5_10}, however, for a discussion of
 how a setup with pseudo-random walks over $\F_{p^2}$ resists quantum
 attacks in a world where quantum computers are available, but much
-more expensive than classical ones.
+slower than classical ones.
 
 \paragraph{Attacks on the computation} do not seek to deviate from the
 description of the protocol, but simply try to speed up $\Extract$
@@ -859,8 +933,9 @@ However, such an adversary with exponential precomputation,
 exponential storage, and constant time RAM is easily dismissed as
 unreasonable. %
 More subtle trade-offs between precomputation, storage and efficiency
-can be obtained, like, for example, RNS-based techniques to attack
-group-based VDFs~\cite{BernsteinSorenson07}, although the real impact
+can be obtained, like for example RNS-based techniques to attack
+group-based VDFs~\cite{BernsteinSorenson07}. %
+However the real impact
 of these theoretical algorithms has yet to be determined.
 
 In practice, a pragmatic approach to address attacks on the
