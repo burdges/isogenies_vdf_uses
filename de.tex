@@ -129,7 +129,7 @@ trusted authority is to encrypt bids to the authority, who then
 decrypts all the bids and selects the winner. %
 Lacking a trusted authority, the standard solution is to divide the
 auction in two phases: in the \emph{bidding phase} all bidders commit
-to their bids using a commitment; it the \emph{tallying phase} bidders
+to their bids using a commitment; if the \emph{tallying phase} bidders
 open their commitments, and the highest bidder wins. %
 However, this design has one flaw in contexts where it is required
 that all bidders reveal their bids at the end of the auction. %
@@ -145,7 +145,7 @@ However this solution becomes very expensive in large auctions,
 because one puzzle per bidder must be solved: if several thousands of
 bidders participate, the tallyers must strike a balance between
 running thousands of puzzle solving computations in parallel, and
-having a tallying phase that is a thousands times longer than the
+having a tallying phase that is thousands of times longer than the
 bidding phase. %
 Since time-lock puzzles use trapdoors for puzzle generation, a
 potential mitigation is to have the bidders reveal their trapdoors in
@@ -161,7 +161,7 @@ slow puzzle-solving algorithm. %
 Unfortunately, the only efficient HTLPs introduced
 in~\cite{C:MalThy19} are simply homomorphic (either additively or
 multiplicatively), and they are thus only useful for voting; fully
-homomprphic TLPs, which are necessary for auctions, are only known
+homomorphic TLPs, which are necessary for auctions, are only known
 from indistinguishability obfuscation~\cite{FOCS:GGHRSW13}, and are
 thus unpractical. %
 
@@ -376,11 +376,11 @@ Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
 \subsection{Relationship with other primitives}
 
 \paragraph{Delay Encryption and Identity Based Encryption.}
-Although there is no formal relationship between Identity Base
+Although there is no formal relationship between Identity Based
 Encryption (IBE) and Delay Encryption, the similarity is evident. 
 
 Recall that an IBE scheme is a public key encryption with three
-parties: a dealer who possess a master private-public key-pair, a
+parties: a dealer who possesses a master private-public key-pair, a
 receiver who has an \emph{identity} that acts as its public key (e.g.,
 its email address), and a sender who wants to send a message to the
 receiver. %
@@ -391,8 +391,8 @@ and the master public key. %
 The receiver decrypts using the master public key and the private key
 provided by the dealer.
 
-Delay Encryption follows the same blueprint, but has no secrets: there
-is no more a master key, but only a set of public parameters $\pp$. %
+Delay Encryption follows the same blueprint, but has no secrets:
+there is no master key anymore, but only a set of public parameters $\pp$. %
 Receiver identities become session identifiers $\id$: public but
 unpredictable. %
 The dealer is replaced by the public functionality
@@ -422,7 +422,7 @@ To verify a signature $(\id,\idk)$: run encapsulation to $\id$
 obtaining a random $(c,k)$, decapsulate $(\id,\idk,c)$ to obtain $k'$,
 and accept the signature if $k=k'$. %
 The signature scheme is existentially unforgeable if the IBE scheme is
-indistinguishable under chosen chiphertext attacks.
+indistinguishable under chosen ciphertext attacks.
 
 Precisely the same construction shows that Delay Encryption implies
 (sequential) Proof of Work. %
@@ -477,7 +477,7 @@ Then $\mathsf{Solve}$ is naturally defined as
 \item Compute $k \gets \Decaps(\pp,\id,\idk,c)$;
 \item Return $s = D_k(m)$;
 \end{enumerate}
-where $D_k$ is the decryption routine associated to $D_k$. %
+where $D_k$ is the decryption routine associated to $E_k$. %
 
 However this fails to define a Time-lock puzzle in the sense above,
 because $\Setup$ can take time $\poly(\lambda,T)$ instead of
@@ -575,7 +575,7 @@ Any $\ell$-isogeny $\phi:E\to E'$ has a unique \emph{dual}
 $\ell$-isogeny $\hat\phi:E'\to E$ such that
 \begin{equation}
   \label{eq:adjoin}
-  e_N(\phi(P),Q) = e_N'(P,\hat\phi(Q)),
+  e_N'(\phi(P),Q) = e_N(P,\hat\phi(Q)),
 \end{equation}
 for any integer $N$ and any points $P\in E[N]$, $Q\in E'[N]$, where
 $e$ is the Weil pairing on $E$, and $e'$ the one on $E'$. %
@@ -766,7 +766,7 @@ The \emph{bilinear isogeny shortcut game} is defined as follows:
 \item[Challenge.] The challenger outputs uniformly random
   $R\in E[(N,\pi-1)]$ and $Q\in E'[N]$.
 \item[Guess.] Algorithm $\mathcal{S}$ is run on $(R,Q)$. The adversary
-  wins id $\mathcal{S}$ outputs
+  wins if $\mathcal{S}$ outputs
   $\mathcal{S}(R,Q) = e_N'(\phi(R),Q) = e_N(R,\hat\phi(Q))$.
 \end{description}
 
@@ -1156,7 +1156,7 @@ might prove knowledge of this isogeny in zero knowledge, although none
 seem to be competitive with the technique above.
  
 First, there exists a rapidly expanding SNARK toolbox from which
-one could preform $\F_p$ arithmetic inside the SNARK to check the
+one could perform $\F_p$ arithmetic inside the SNARK to check the
 verification conditions 2 and 3 directly.  
 As instantiating the delay function imposes restrictions on $p$,
 one cannot necessarily select $p$ using the Cocks-Pinch method to
@@ -1174,7 +1174,7 @@ Second, there are well known post-quantum isogenies based proofs:
   On top of that, they are very inefficient, and do not have perfect
   zero-knowledge. %
 \item[SeaSign-style proofs~\cite{10.1007/978-3-030-17659-4_26}] %
-  have sizes in the hundred of kilobytes, and their generation and
+  have sizes in the hundreds of kilobytes, and their generation and
   verification are extremely slow (dozens of hours). %
   Note that several of the optimizations used for signatures,
   including the class group order precomputation of
@@ -1348,7 +1348,7 @@ possible choices are
 \end{equation}
 As we know that $(0,0)$ generates the dual isogeny to $\phi_\alpha$,
 neither choice of $\alpha'$ will define a backtracking walk. %
-Interestingly, Catryck and Decru~\cite{cryptoeprint:2019:1404} show
+Interestingly, Castryck and Decru~\cite{cryptoeprint:2019:1404} show
 that when $p=7\mod 8$, if $\alpha\in\F_p$, $\phi_\alpha$ is a
 horizontal isogeny (see definition in~\cite{cryptoeprint:2019:1404}),
 and $\alpha'$ is defined as
