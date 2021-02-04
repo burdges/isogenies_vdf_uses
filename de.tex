@@ -184,8 +184,8 @@ Instead of senders and receivers, Delay Encryption has a concept of
 \emph{sessions}. %
 A session is defined by a \emph{session identifier}, which must be a
 hard to predict string. %
-When a session identifier $\id$ is issued, anyone can \emph{encrypt to
-  the session} simply using this knowledge; decryption is however
+When a session identifier $\id$ is issued, anyone knowing $\id$ can
+\emph{encrypt to the session for $\id$}; decryption is however
 unfeasible without a \emph{session key}, which is to be derived from
 $\id$. %
 The defining feature of Delay Encryption is \emph{extraction}: the
