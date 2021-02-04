@@ -314,7 +314,7 @@ that Delay Encryption has no secrets: after public parameters $\pp$
 are generated, anyone can run any of the algorithms. %
 Thus, the usual notion of indistinguishability will only be defined
 with respect to the delay parameter $T$: no adversary is able to
-distinguish a key $k$ from a random string in time $T-o(t)$, but
+distinguish a key $k$ from a random string in time $T-o(T)$, but
 anyone can in time $T$. %
 Properly defining what is meant by ``time'' requires fixing a
 computation model. %
@@ -526,7 +526,7 @@ Over the algebraic closure of $\F_p$, there is only a finite number of
 isomorphism classes of supersingular curves, and every class contains
 a curve defined over $\F_{p^2}$. %
 
-We will only work with supersingular curves $E/\F_{p^2}$, whose group
+We will only work with supersingular curves $E/\F_{p^2}$ whose group
 of $\F_{p^2}$-rational points is isomorphic to ${(\Z/(p+1)\Z)}^2$. %
 For these curves, if $N$ is a divisor of $p+1$, we will denote by
 $E[N]$ the subgroup of $\F_{p^2}$-rational points of order $N$, which
@@ -578,7 +578,7 @@ $\ell$-isogeny $\hat\phi:E'\to E$ such that
   e_N'(\phi(P),Q) = e_N(P,\hat\phi(Q)),
 \end{equation}
 for any integer $N$ and any points $P\in E[N]$, $Q\in E'[N]$, where
-$e$ is the Weil pairing on $E$, and $e'$ the one on $E'$. %
+$e_N$ is the Weil pairing on $E$, and $e'_N$ the one on $E'$. %
 The same equation, with the same $\hat\phi$, also holds for any other
 known pairing, such as the Tate and Ate pairings.
 
@@ -812,7 +812,7 @@ scheme.
   $\mathcal{D}$) makes a call to $H_2$, algorithm $\mathcal{B}$
   (actually, $\mathcal{S})$ responds as before. %
   Finally, when $\mathcal{D}$ outputs its guess, $\mathcal{S}$ simply
-  takes a random entry among those that were queried to $H_2$.
+  returns a random entry among those that were queried to $H_2$.
 
   Let $\mathcal{H}$ be the event that $\mathcal{A}$ (or $\mathcal{D}$)
   queries $H_2$ on input $e_N(R,\hat\phi(Q))$. %
@@ -879,9 +879,9 @@ The only way out of these attacks is to select the starting curve $E$
 as a uniformly random supersingular curve over $\F_p$, then no
 efficient algorithm is known to compute $\End(E)$, nor $\End(E')$. %
 Unfortunately, the only way we currently know to sample nearly
-uniformly in the supersingular class over $\F_p$, is to
-(paraphrasing) choose the endomorphism ring first, and then compute
-$E$ given $\End(E)$.
+uniformly in the supersingular class over $\F_p$, is
+paraphrasing \cite{10.1007/978-3-030-34578-5_10} to choose the
+endomorphism ring first, and then compute $E$ given $\End(E)$.
 
 Thus, the solution put forth in~\cite{10.1007/978-3-030-34578-5_10} is
 to generate the starting curve $E$ via a trusted setup, that first
@@ -1052,8 +1052,9 @@ Ignoring zero-knowledge temporarily, Eq.~\eqref{eq:adjoin} already
 provides a proof of knowledge of a non-trivial relation between
 $E_{i-1}$ and $E_i$. %
 Let $H_1$ be a hash function mapping into
-$E_{i-1}[(N,\pi-1)] \times E_i[(N,\pi+1)]$, the proof proceeds as
-follows
+$E_{i-1}[(N,\pi-1)] \times E_i[(N,\pi+1)]$.
+Also let $e_N^i$ denote the Weil pairing on $E_i$.
+The proof proceeds as follows
 \begin{enumerate}
 \item Hash the curves $E_{i-1},E_i$ to a pair of points
   $(P,Q) = H_1(E_{i-1},E_i)$;
@@ -1107,7 +1108,7 @@ More precisely, we publish:
  $X = x P' + \psi_i(P) \in E_i[(N,\pi-1)]$ and
  $Y = y Q' + \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$,
 \item two public keys $Y' = e_N^{i-1}(P,Q')^y$ and $X' = e_N^i(P',Q)^x$, and
-\item two Schnorr proofs of knowledge $(c,s_X,s_Y)$ for $x$ in $X'$ and $y$ in $Y'$
+\item two Schnorr proofs of knowledge $(c,s_X,s_Y)$ for $x$ of $X'$ and $y$ of $Y'$
 over the base points $e_N^{i-1}(P,Q')$ and $e_N^i(P',Q')$, respectively.
 %TODO: Referee says:
 % - p.15, last line: write "what kind of knowledge".
@@ -1116,8 +1117,8 @@ over the base points $e_N^{i-1}(P,Q')$ and $e_N^i(P',Q')$, respectively.
 At this point, our verifier now checks 
 \begin{itemize}
 \item $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
-\item non-triviality $X' \ne e(X,Q)$ and $Y' \ne e(P,Y)$ of the commitments, and
-\item the proof
+\item non-triviality $X' \ne e_N^i(X,Q)$ and $Y' \ne e_N^{i-1}(P,Y)$ of the commitments, and
+\item the proofs of knowledge $s_X,s_Y$ using
 $$ c = H( 
   e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| 
   X' \| Y' \| 
@@ -1125,7 +1126,7 @@ $$ c = H(
   (Y')^c e_N^i(P',Q)^{s_Y} 
 ). $$
 \end{itemize}
-In this, we ask verifiers to compute four parings, which only doubles
+In this, we ask verifiers to compute four pairings, which only doubles
 the verifier time.
 % Also, four hash-to-curve operations, and 
 % four-ish scalar multiplications in the target group.
@@ -1157,7 +1158,7 @@ seem to be competitive with the technique above.
  
 First, there exists a rapidly expanding SNARK toolbox from which
 one could perform $\F_p$ arithmetic inside the SNARK to check the
-verification conditions 2 and 3 directly.  
+verification of the second and third conditions directly.  
 As instantiating the delay function imposes restrictions on $p$,
 one cannot necessarily select $p$ using the Cocks-Pinch method to
 provide a pairing friendly elliptic curve with group order $p$, 
@@ -1166,7 +1167,7 @@ There are optimisations for arithmetic in arbitrary $\F_p$
 however, especially using polynomial commitments,
 like in \cite{plookup}. % https://eprint.iacr.org/2020/315.pdf
 
-Second, there are well known post-quantum isogenies based proofs:
+Second, there are well known post-quantum isogeny-based proofs:
 \begin{description}
 \item[SIDH-style proofs~\cite{defeo+jao+plut12}] %
   are very inconvenient, because they require primes of a specific
@@ -1291,7 +1292,7 @@ where $\alpha$ is a root of the polynomial $x^2+Ax+1$, and possibly
 lives in $\F_{p^2}$. %
 These three points define the three possible isogenies of degree $2$
 starting from $E$. %
-Montgomery form is almost unique, there being only six possible
+The Montgomery form is almost unique, there being only six possible
 choices for the $A$ coefficient for a given isomorphism class,
 corresponding to the three possible choices for the point to send in
 $(0,0)$ (each taken twice).
@@ -1375,7 +1376,7 @@ special primes.
 
 In software, the latency of multiplication modulo such a prime is
 today around 1$\mu$s. %
-The winner of the Ethereum FPGA competition~\cite{ethereum-vdf},
+The winner of the Ethereum FPGA competition~\cite{ethereum-vdf}
 achieved a latency of 25ns for 2048-bits RSA arithmetic. %
 Assuming a pessimistic baseline of 50ns for one $2$-isogeny
 evaluation, for a target delay of $1$ hour we need an isogeny walk of length
@@ -1476,7 +1477,7 @@ The implementation of delay functions from isogenies presents several
 practical challenges, such as needing very large storage for the
 public parameters. %
 On top of that, it is not evident how to prove the optimality of
-isogenies formulas used for evaluating the delay function. %
+isogeny formulas used for evaluating the delay function. %
 While we gave here extremely efficient formulas, these seem to be at
 least one multiplication more expensive than the theoretical
 optimum. %
