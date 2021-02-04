@@ -1212,7 +1212,7 @@ isogeny walk is split into two halves of equal size
 $\phi_1:E\to \Emid$ and $\phi_2:\Emid\to E'$ so that
 $\phi=\phi_2\circ\phi_1$, and $\phi_1(P)$ is added to the public parameters. %
 Each evaluator then generates a secret key $s\in\Z/N\Z$ and a public
-key $s\phi_1(P)$. %
+key $S = s \phi(P)$. %
 When evaluating $\hat\phi=\hat\phi_1\circ\hat\phi_2$ at a point
 $Q\in E'[N]$, the evaluator:
 \begin{enumerate}
@@ -1222,7 +1222,7 @@ $Q\in E'[N]$, the evaluator:
   $\hat\phi(Q)=\hat\phi_1(\Qmid)$.
 \end{enumerate}
 A watermark can then be verified by checking that
-\[e_N^\mathrm{mid}(\phi_1(P),s\Qmid) = e_N'(s\phi(P),Q).\]
+\[e_N^\mathrm{mid}(\phi_1(P),s\Qmid) = e_N'(S,Q).\]
 Interestingly, this proof is \emph{blind}, meaning that it can be
 verified even before the work is finished.
 
