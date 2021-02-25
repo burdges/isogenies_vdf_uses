@@ -129,7 +129,7 @@ trusted authority is to encrypt bids to the authority, who then
 decrypts all the bids and selects the winner. %
 Lacking a trusted authority, the standard solution is to divide the
 auction in two phases: in the \emph{bidding phase} all bidders commit
-to their bids using a commitment; if the \emph{tallying phase} bidders
+to their bids using a commitment; in the \emph{tallying phase} bidders
 open their commitments, and the highest bidder wins. %
 However, this design has one flaw in contexts where it is required
 that all bidders reveal their bids at the end of the auction. %
@@ -227,7 +227,7 @@ as senders of a Delay Encryption scheme. %
 In the meantime, anyone can start computing the auction key using the
 extraction functionality. %
 When the \emph{auction key} associated with the auction id is known,
-anyone in possess of it can decrypt all bids and determine the winner.
+anyone in possession of it can decrypt all bids and determine the winner.
 
 \paragraph{Electronic voting.} In electronic voting it is often
 required that the partial tally of an election stays unknown until the
@@ -879,9 +879,9 @@ The only way out of these attacks is to select the starting curve $E$
 as a uniformly random supersingular curve over $\F_p$, then no
 efficient algorithm is known to compute $\End(E)$, nor $\End(E')$. %
 Unfortunately, the only way we currently know to sample nearly
-uniformly in the supersingular class over $\F_p$, is
-paraphrasing \cite{10.1007/978-3-030-34578-5_10} to choose the
-endomorphism ring first, and then compute $E$ given $\End(E)$.
+uniformly in the supersingular class over $\F_p$, is,
+paraphrasing~\cite{galbraith2018computational}, to choose the
+endomorphism ring first and then compute $E$ given $\End(E)$.
 
 Thus, the solution put forth in~\cite{10.1007/978-3-030-34578-5_10} is
 to generate the starting curve $E$ via a trusted setup, that first
@@ -1076,7 +1076,7 @@ essentially two pairing computations. %
 \begin{remark}
   While we believe that an adversary not knowing an isogeny from
   $E_{i-1}$ to $E_i$ has a negligible probability of convincing a
-  verifier in the protocol above, it is not clear what kind knowledge
+  verifier in the protocol above, it is not clear what kind of knowledge
   is \emph{exactly} proved by it. %
   Ideally, we would like to prove that, given an algorithm that passes
   verification with non negligible probability, one can extract a
@@ -1100,7 +1100,7 @@ To turn the protocol above into a zero-knowledge proof, we use an
 additional hash function $H_2$ into
 $E_i[(N,\pi-1)]\times E_{i-1}[(N,\pi+1)]$, and let
 $P',Q' \gets H_2(E_{i-1},E_i)$. %
-We now choose $x,y$ secret and publish a NIZK for $(x,y)$ satisfying
+We now choose $x,y$ secret and publish a NIZK proof for $(x,y)$ satisfying
 $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
 More precisely, we publish:
 \begin{itemize}
