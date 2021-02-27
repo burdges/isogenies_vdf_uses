@@ -24,7 +24,9 @@
 \DeclareMathOperator{\Extract}{\mathsf{Extract}}
 \DeclareMathOperator{\Encaps}{\mathsf{Encaps}}
 \DeclareMathOperator{\Decaps}{\mathsf{Decaps}}
-\newcommand{\pp}{\mathsf{pp}}
+%\newcommand{\pp}{\mathsf{pp}}
+\newcommand{\ek}{\mathsf{ek}}
+\newcommand{\pk}{\mathsf{pk}}
 \newcommand{\id}{\mathsf{id}}
 \newcommand{\idk}{\mathsf{idk}}
 \newcommand{\keyspace}{\mathcal{K}}
@@ -275,33 +277,34 @@ straightforward. A Delay Encryption scheme consists of four
 algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
 
 \begin{description}
-\item[$\Setup(\lambda, T) \to \pp$.] %
+\item[$\Setup(\lambda, T) \to (\ek,\pk)$.] %
   Takes a \emph{security parameter} $\lambda$, a \emph{delay
-    parameter} $T$, and produces a set of public parameters $\pp$. %
+    parameter} $T$, and produces public parameters consisting of an
+  \emph{extraction key} $\ek$ and an \emph{encryption key} $\pk$. %
   $\Setup$ must run in time $\poly(\lambda,T)$.
-\item[$\Extract(\pp,\id) \to \idk$.] %
-  Takes the public parameters $\pp$ and a \emph{session identifier}
+\item[$\Extract(\ek,\id) \to \idk$.] %
+  Takes the extraction key $\ek$ and a \emph{session identifier}
   $\id\in\{0,1\}^*$, and outputs a \emph{session key} $\idk$. %
   $\Extract$ is expected to run in time \emph{exactly} $T$, see below.
-\item[$\Encaps(\pp,\id)\to (c,k)$.] %
-  Takes the public parameters $\pp$ and a \emph{session identifier}
+\item[$\Encaps(\pk,\id)\to (c,k)$.] %
+  Takes the encryption key $\pk$ and a \emph{session identifier}
   $\id\in\{0,1\}^*$, and outputs a \emph{ciphertext}
   $c\in\cipherspace$ and a \emph{key} $k\in\keyspace$. %
   $\Encaps$ must run in time $\poly(\lambda)$.
-\item[$\Decaps(\pp,\id,\idk,c)\to k$.] %
-  Takes the public parameters $\pp$, a \emph{session identifier}
+\item[$\Decaps(\pk,\id,\idk,c)\to k$.] %
+  Takes the encryption key $\pk$, a \emph{session identifier}
   $\id$, a \emph{session key} $\idk$, a ciphertext $c\in\cipherspace$,
   and outputs a key $k\in\keyspace$. %
   $\Decaps$ must run in time $\poly(\lambda)$.
 \end{description}
 
 A Delay Encryption scheme is correct if for any
-$\pp=\Setup(\lambda,T)$ and any $\id$
-\[\idk=\Extract(\pp,\id)
+$(\ek,\pk)=\Setup(\lambda,T)$ and any $\id$
+\[\idk=\Extract(\ek,\id)
   \;\wedge\;
-  (c,k) = \Encaps(\pp,\id)
+  (c,k) = \Encaps(\pk,\id)
   \;\Rightarrow\;
-  \Decaps(\pp,\id,\idk,c) = k.\]
+  \Decaps(\pk,\id,\idk,c) = k.\]
 The security of Delay Encryption is defined similarly to that of
 public key encryption schemes, and in particular of identity-based
 ones; however one additional property is required of $\Extract$: that
@@ -310,7 +313,7 @@ algorithm outputs $\idk$ in time less than $T$ is negligible. %
 We now give the formal definition.
 
 \paragraph{The security game.} It is apparent from the definitions
-that Delay Encryption has no secrets: after public parameters $\pp$
+that Delay Encryption has no secrets: after public parameters $(\ek,\pk)$
 are generated, anyone can run any of the algorithms. %
 Thus, the usual notion of indistinguishability will only be defined
 with respect to the delay parameter $T$: no adversary is able to
@@ -330,10 +333,10 @@ Note that the game involves no oracles, owing to the fact that the
 scheme has no secrets. %
 %
 \begin{description}
-\item[Precomputation.] The adversary receives $\pp$ as input, and
+\item[Precomputation.] The adversary receives $(\ek,\pk)$ as input, and
   outputs an algorithm $\mathcal{D}$. %
 \item[Challenge.] The challenger selects a random $\id$ and computes
-  $(c,k_0)\gets\Encaps(\pp,\id)$. %
+  a key encapsulation $(c,k_0)\gets\Encaps(\pk,\id)$. %
   It then picks a uniformly random $k_1\in\keyspace$, and a random bit
   $b\in\{0,1\}$. %
   Finally, it outputs $(c,k_b,\id)$.
@@ -348,10 +351,9 @@ that no computation is ``free'' after the adversary has seen the
 challenge.
 
 We say a Delay Encryption scheme is \emph{$\Delta$-Delay
-  Indistinguishable under Chosen Plaintext Attacks} if, for any
-efficient adversary running the precomputation in time
-$\poly(\lambda,T)$, the probability of winning the game is
-negligible. %
+  Indistinguishable under Chosen Plaintext Attacks} if any
+adversary running the precomputation in time
+$\poly(\lambda,T)$ has negligible advantage in winning the game. %
 Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
 
 \begin{remark}
@@ -360,8 +362,8 @@ Obviously, the interesting schemes are those where $\Delta = T-o(T)$.
   $\mathcal{D}$ access to a decryption oracle for $\id$, it is not
   clear what kind of real world attacks this security notion could
   model. Indeed, an instantaneous decryption oracle for $\id$ would go
-  against the idea that the decryption key $\idk$ is not known to
-  anyone before time $T$.
+  against the idea that the session key $\idk$ needed for decryption
+  is not known to anyone before time $T$.
 
   Similarly, one could imagine giving $\mathcal{D}$ access to an
   extraction oracle, to allow it instantaneous adaptive extraction
@@ -380,7 +382,7 @@ Although there is no formal relationship between Identity Based
 Encryption (IBE) and Delay Encryption, the similarity is evident. 
 
 Recall that an IBE scheme is a public key encryption with three
-parties: a dealer who possesses a master private-public key-pair, a
+parties: a dealer who possesses a master private/public key pair, a
 receiver who has an \emph{identity} that acts as its public key (e.g.,
 its email address), and a sender who wants to send a message to the
 receiver. %
@@ -392,12 +394,12 @@ The receiver decrypts using the master public key and the private key
 provided by the dealer.
 
 Delay Encryption follows the same blueprint, but has no secrets:
-there is no master key anymore, but only a set of public parameters $\pp$. %
+there is no master key anymore, but only a set of public parameters $(\ek,\pk)$. %
 Receiver identities become session identifiers $\id$: public but
 unpredictable. %
 The dealer is replaced by the public functionality
-$\Extract(\pp,\id)$: sequential and slow. %
-Senders encrypt messages to the sessions by using $\pp$ and $\id$. %
+$\Extract(\ek,\id)$: sequential and slow. %
+Senders encrypt messages to the sessions by using $\pk$ and $\id$. %
 After extraction has produced $\idk$, anyone can decrypt messages
 ``sent'' to $\id$ by using $\idk$.
 
@@ -429,7 +431,7 @@ Precisely the same construction shows that Delay Encryption implies
 Furthermore, if we define \emph{extraction soundness} as the property
 that adversaries have negligible chance of finding $\idk\ne\idk'$ such
 that
-\[\Decaps(\pp,\id,\idk,c) = \Decaps(\pp,\id,\idk',c),\]
+\[\Decaps(\pk,\id,\idk,c) = \Decaps(\pk,\id,\idk',c),\]
 then we see that extraction sound Delay Encryption implies Verifiable
 Delay Functions. %
 It is easily verified that the derived VDF is $\Delta$-sequential if
@@ -464,17 +466,17 @@ parallel time significantly less than $T$.
 One might be tempted to construct a Time-lock puzzle from Delay
 Encryption by defining $\mathsf{Gen}$ as follows:
 \begin{enumerate}
-\item Compute $\pp \gets \Setup(\lambda,T)$;
+\item Compute $(\ek,\pk) \gets \Setup(\lambda,T)$;
 \item Sample a random $\id\in\{0,1\}^\lambda$;
-\item Compute $(c,k) \gets \Encaps(\pp, \id)$;
+\item Compute $(c,k) \gets \Encaps(\pk, \id)$;
 \item Compute $m = E_k(s)$;
-\item Return $(\pp,\id,c,m)$;
+\item Return $(\ek,\pk,\id,c,m)$;
 \end{enumerate}
 where $E_k$ is a symmetric encryption scheme. %
 Then $\mathsf{Solve}$ is naturally defined as
 \begin{enumerate}
-\item Compute $\idk \gets \Extract(\pp,\id)$;
-\item Compute $k \gets \Decaps(\pp,\id,\idk,c)$;
+\item Compute $\idk \gets \Extract(\ek,\id)$;
+\item Compute $k \gets \Decaps(\pk,\id,\idk,c)$;
 \item Return $s = D_k(m)$;
 \end{enumerate}
 where $D_k$ is the decryption routine associated to $E_k$. %
@@ -664,7 +666,7 @@ $T$.
   \item Perform an $\ell$-isogeny walk $\phi:E\to E'$ of length $T$;
   \item Select a random point $P\in E(\F_p)$ of order $N$, and compute
     $\phi(P)$;
-  \item Output $E',\phi,P,\phi(P)$.
+  \item Output $\ek:=(E',\phi)$ and $\pk:=(E',P,\phi(P))$.
   \end{enumerate}
 \end{description}
 
