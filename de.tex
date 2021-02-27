@@ -272,9 +272,8 @@ and challenges for isogeny based delay functions.
 \label{sec:definitions}
 
 Our definition of Delay Encryption uses an API similar to a Key
-Encapsulation Mechanism; the adaptation to a PKE-like API is
-straightforward. A Delay Encryption scheme consists of four
-algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
+Encapsulation Mechanism: it consists of four algorithms ---$\Setup$,
+$\Extract$, $\Encaps$ and $\Decaps$--- with the following interface.
 
 \begin{description}
 \item[$\Setup(\lambda, T) \to (\ek,\pk)$.] %
@@ -297,6 +296,13 @@ algorithms: $\Setup$, $\Extract$, $\Encaps$ and $\Decaps$:
   and outputs a key $k\in\keyspace$. %
   $\Decaps$ must run in time $\poly(\lambda)$.
 \end{description}
+
+When $\Encaps$ and $\Decaps$ are combined with a symmetric encryption
+scheme keyed by $k$, they become the encryption and decryption
+routines of a hybrid encryption scheme, which can then be used as in
+the applications described previously. %
+Alternatively we could have used a PKE-like API directly, however we
+prefer the KEM one as it is closer to known instantiations.
 
 A Delay Encryption scheme is correct if for any
 $(\ek,\pk)=\Setup(\lambda,T)$ and any $\id$
