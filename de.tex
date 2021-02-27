@@ -93,21 +93,21 @@ After their definition, VDFs quickly gained attention, prompting two
 independent solutions in the space of a few
 weeks~\cite{Wesolowski,Pietrzak}. %
 Both proposals are based on repeated squaring in groups of unknown
-order, and are similar in spirit to Rivest \emph{et al.}'s time-lock
-puzzle, however they use no trapdoor.
+order, and are similar in spirit to Rivest \emph{et al.}'s Time-lock
+Puzzle, however they use no trapdoor.
 
 One year later, another VDF, based on a different algebraic structure,
 was proposed by De Feo, Masson, Petit and
 Sanso~\cite{10.1007/978-3-030-34578-5_10}. %
 This VDF uses chains of supersingular isogenies as ``sequential slow''
 functions, and pairings for efficient verification. %
-Interestingly, it is not known how to build a time-lock puzzle from
+Interestingly, it is not known how to build a Time-lock Puzzle from
 isogenies; in this work we introduce a new primitive, in some respects
-more powerful than time-lock puzzles, that we are able to instantiate
+more powerful than Time-lock Puzzles, that we are able to instantiate
 from isogenies.
 
-\subsubsection{Limitations of Time-lock puzzles.}
-Time-lock puzzles allow one to ``encrypt to the future'', i.e., to
+\subsubsection{Limitations of Time-lock Puzzles.}
+Time-lock Puzzles allow one to ``encrypt to the future'', i.e., to
 create a puzzle $\pi$ that encapsulates a message $m$ for a set amount
 of time $T$. %
 They have the following two properties:
@@ -121,7 +121,7 @@ They have the following two properties:
   recover $m$ reliably.
 \end{itemize}
 
-Time-lock puzzles can be used to remove trusted parties from
+Time-lock Puzzles can be used to remove trusted parties from
 protocols, replacing them with a time-consuming puzzle solving. %
 Prototypical applications are auctions and electronic voting, we will
 use auctions as a motivating example.
@@ -140,8 +140,8 @@ auction, but only pays the price of the second highest bid. %
 If at the end of the auction some bidders refuse to open their
 commitment, the result of the auction may be invalid.
 
-Time-lock puzzles solve this problem: by having bidders encapsulate
-their bid in a time-lock puzzle, it is guaranteed that all bids can be
+Time-lock Puzzles solve this problem: by having bidders encapsulate
+their bid in a Time-lock Puzzle, it is guaranteed that all bids can be
 decrypted in the tallying phase. %
 However this solution becomes very expensive in large auctions,
 because one puzzle per bidder must be solved: if several thousands of
@@ -149,13 +149,13 @@ bidders participate, the tallyers must strike a balance between
 running thousands of puzzle solving computations in parallel, and
 having a tallying phase that is thousands of times longer than the
 bidding phase. %
-Since time-lock puzzles use trapdoors for puzzle generation, a
+Since Time-lock Puzzles use trapdoors for puzzle generation, a
 potential mitigation is to have the bidders reveal their trapdoors in
 the tallying phase, thus speeding up decryption; however this does not
 help in presence of a large number of uncollaborative bidders.
 
 An elegant solution introduced in~\cite{C:MalThy19} is to use
-\emph{Homomorphic Time-lock Puzzles (HTLP)}, i.e., time-lock puzzles
+\emph{Homomorphic Time-lock Puzzles (HTLP)}, i.e., Time-lock Puzzles
 where the puzzles can be efficiently combined homomorphically. %
 Using these, the tallyers can efficiently evaluate the desired
 tallying circuit on the unopen puzzles, and then run only a single
@@ -167,7 +167,7 @@ homomorphic TLPs, which are necessary for auctions, are only known
 from indistinguishability obfuscation~\cite{FOCS:GGHRSW13}, and are
 thus unpractical. %
 
-On top of that, it can be argued that time-lock puzzles are not the
+On top of that, it can be argued that Time-lock Puzzles are not the
 appropriate primitive to solve the problem: why do the tallyers need
 to run one of two different algorithms to open the puzzles? Are
 trapdoors really necessary? %
@@ -176,7 +176,7 @@ that arguably solves the problem more straightforwardly and elegantly.
 
 
 \subsubsection{Delay Encryption.}
-Delay Encryption is related to both Time-lock puzzles and VDFs,
+Delay Encryption is related to both Time-lock Puzzles and VDFs,
 however it does not seem to be subsumed by either. %
 It can be viewed as a time-lock analogue of Identity Based Encryption,
 where the derivation of individual private keys is sequential and
@@ -201,17 +201,17 @@ It is thus important that session identifiers are hard to predict, and
 thrown away after the first use, otherwise an attacker may precompute
 session keys and immediately decrypt any ciphertext to the sessions.
 
-Delay Encryption is different from known Time-lock puzzles in that it
+Delay Encryption is different from known Time-lock Puzzles in that it
 has no trapdoor, and from VDFs in that it provides a fast encryption,
 rather than just a fast verification. %
-It has similar applications to Homomorphic time-lock puzzles, it is
+It has similar applications to Homomorphic Time-lock Puzzles, it is
 however more efficient and solves many problems more
 straightforwardly.
 
 
 \subsubsection{Applications of Delay Encryption.}
 
-We already mentioned the two main applications of Time-lock puzzles. %
+We already mentioned the two main applications of Time-lock Puzzles. %
 We review here how Delay Encryption offers better solutions.
 
 \paragraph{Vickrey auctions.} 
@@ -222,13 +222,13 @@ However this solution is problematic when some bidders may refuse to
 open their commitments.
    
 Delay Encryption provides a very natural solution: at the beginning of
-the auction an \emph{auction id} is selected using some unpredictable
+the auction an \emph{auction identifier} is selected using some unpredictable
 and unbiased randomness, e.g., coming from a randomness beacon. %
-After the auction id is published, all bidders encrypt to the auction
+After the auction identifier is published, all bidders encrypt to the auction
 as senders of a Delay Encryption scheme. %
 In the meantime, anyone can start computing the auction key using the
 extraction functionality. %
-When the \emph{auction key} associated with the auction id is known,
+When the \emph{auction key} associated with the auction identifier is known,
 anyone in possession of it can decrypt all bids and determine the winner.
 
 \paragraph{Electronic voting.} In electronic voting it is often
@@ -236,7 +236,7 @@ required that the partial tally of an election stays unknown until the
 end, to avoid influencing the outcome. %
 
 Delay Encryption again solves the problem elegantly: once the
-\emph{election id} is published, all voters can cast their ballot by
+\emph{election identifier} is published, all voters can cast their ballot by
 encrypting to it. %
 Only after the election key is published, anyone can verify the
 outcome by decrypting the ballots. %
@@ -247,7 +247,7 @@ anonymity, integrity, etc.
 \medskip
 
 In both applications it is evident that the session/auction/election
-id must be unpredictable and unbiased: if it is not, someone may start
+identifier must be unpredictable and unbiased: if it is not, someone may start
 computing the session key before anyone else can, and thus break the
 delay property. %
 Fortunately, this requirement is easily satisfied by using randomness
@@ -260,7 +260,7 @@ Section~\ref{sec:delay-encrypt-from}. %
 In the following sections, we discuss several topics related to both
 Delay Encryption and VDFs from isogenies and pairings:
 Section~\ref{sec:distr-trust-setup} explains how to efficiently
-implement the trusted setup, common to both our Delay encryption and
+implement the trusted setup, common to both our Delay Encryption and
 the isogeny based VDF, in a distributed manner;
 Section~\ref{sec:watermarking} covers Watermarking, a mechanism to
 prove ``ownership'' of a ``slow'' computation; finally
@@ -443,16 +443,16 @@ Unsurprisingly, the instantiation of Delay Encryption that we give in
 the next section is extraction sound, and the derived VDF is
 equivalent to De~Feo \emph{et al.}'s VDF.
 
-\paragraph{Delay Encryption and Time-lock puzzles.}
-Both Delay Encryption and Time-lock puzzles permit a form of
+\paragraph{Delay Encryption and Time-lock Puzzles.}
+Both Delay Encryption and Time-lock Puzzles permit a form of
 \emph{encryption to the future}: encrypt a message now, so that it can
 only be decrypted at a set time in the future. %
-There is no formal definition of Time-lock puzzles commonly agreed
+There is no formal definition of Time-lock Puzzles commonly agreed
 upon in the literature, it is thus difficult to say what they exactly
 are and how they compare to Delay Encryption.
 
 Bitansky \emph{et al.}~\cite{10.1145/2840728.2840745} define 
-Time-lock puzzles as two algorithms
+Time-lock Puzzles as two algorithms
 \begin{itemize}
 \item $\mathsf{Gen}(\lambda,T, s) \to Z$ that takes as input a delay parameter
   $T$ and a solution $s\in\{0,1\}^\lambda$, and outputs a puzzle $Z$;
@@ -463,7 +463,7 @@ under the constraints that $\mathsf{Gen}$ runs in time
 $\poly(\lambda,\log T)$ and that no algorithm computes $s$ from $Z$ in
 parallel time significantly less than $T$.
 
-One might be tempted to construct a Time-lock puzzle from Delay
+One might be tempted to construct a Time-lock Puzzle from Delay
 Encryption by defining $\mathsf{Gen}$ as follows:
 \begin{enumerate}
 \item Compute $(\ek,\pk) \gets \Setup(\lambda,T)$;
@@ -481,11 +481,11 @@ Then $\mathsf{Solve}$ is naturally defined as
 \end{enumerate}
 where $D_k$ is the decryption routine associated to $E_k$. %
 
-However this fails to define a Time-lock puzzle in the sense above,
+However this fails to define a Time-lock Puzzle in the sense above,
 because $\Setup$ can take time $\poly(\lambda,T)$ instead of
 $\poly(\lambda,\log T)$. %
 If we take $\Setup$ out of $\mathsf{Gen}$, though, we obtain something
-very similar to what Bitansky \emph{et al.} call Time-lock puzzles
+very similar to what Bitansky \emph{et al.} call Time-lock Puzzles
 \emph{with pre-processing}, albeit slightly weaker.%
 \footnote{Bitansky \emph{et al.} require pre-processing to run in
   sequential time $T\cdot\poly(\lambda)$, but parallel time only
@@ -493,7 +493,7 @@ very similar to what Bitansky \emph{et al.} call Time-lock puzzles
 
 We see no technical obstruction to having $\Setup$ run in time
 $\poly(\lambda,\log T)$, and thus being a strictly stronger primitive
-than Time-lock puzzles. %
+than Time-lock Puzzles. %
 However our instantiation does not satisfy this stronger notion of
 Delay Encryption, and, lacking any other candidate, we prefer to keep
 our definitions steeping in reality.
@@ -505,10 +505,10 @@ Encryption in the world of time delay cryptography. %
 It requires Proofs of Work to exist, and a mild strengthening of it
 (which we are able to instantiate) implies Verifiable Delay
 Functions. %
-It also implies a weak form of Time-lock puzzles, and a strengthening
+It also implies a weak form of Time-lock Puzzles, and a strengthening
 of it (of which we know no instantiation) implies standard Time-lock
 puzzles. %
-At the same time, no dependency is known between Time-lock puzzles and
+At the same time, no dependency is known between Time-lock Puzzles and
 Verifiable Delay Functions, indicating that Delay Encryption is
 possibly a stronger primitive than both.
 
@@ -621,7 +621,7 @@ cannot be computed more efficiently than by going through each of the
 isogenies one at a time, sequentially. %
 The case $\ell=2$ is very similar to repeated squaring in groups of
 unknown order as used by other VDFs~\cite{Wesolowski,Pietrzak} and
-time-lock puzzles~\cite{TLP}: in groups, one iterates $T$ times the
+Time-lock Puzzles~\cite{TLP}: in groups, one iterates $T$ times the
 function $x\mapsto x^2$, a polynomial of degree $2$; in isogeny graphs, one
 iterates rational fractions of degree $2$. %
 See Section~\ref{sec:secure-impl-isog} for more details.
@@ -670,7 +670,7 @@ $T$.
   \end{enumerate}
 \end{description}
 
-We stress that known homomorphic time-lock puzzles~\cite{C:MalThy19}
+We stress that known homomorphic Time-lock Puzzles~\cite{C:MalThy19}
 also require a one-shot trusted setup. %
 Furthermore, unlike constructions based on RSA groups,
 there is no evidence that trusted setup is unavoidable for
@@ -1467,7 +1467,7 @@ topics that also apply to the VDF of De Feo, Masson, Petit and Sanso.
 
 Several interesting questions are raised by our work, such as, for
 example, clarifying the relationship between Delay Encryption,
-Verifiable Delay Functions and Time-lock puzzles.
+Verifiable Delay Functions and Time-lock Puzzles.
 
 Like the isogeny-based VDF, our Delay Encryption requires a trusted
 setup. %
