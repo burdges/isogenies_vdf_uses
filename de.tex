@@ -566,7 +566,8 @@ elliptic curves, and whose edges are isogenies, under some
 restrictions. %
 Isogeny-based cryptography mainly uses two types of isogeny graphs:
 \begin{itemize}
-\item The \emph{full supersingular graph} of $\F_p$, whose vertices
+\item The \emph{full supersingular graph} of (the algebraic closure of)
+  $\F_p$, whose vertices
   are all isomorphism classes of supersingular curves over $\F_{p^2}$,
   and whose edges are all isogenies of a prime degree $\ell$;
   typically $\ell=2,3$.
@@ -692,7 +693,7 @@ however a generic (pseudorandom) walk over $\F_{p^2}$ will offer some
 partial protection against quantum attacks.
 
 Before defining the other routines, we need two hash functions. %
-The first, $H_1:\{0,1\}^*\to E'[N]$, will be used to hash session
+The first, $H_1:\{0,1\}^\lambda\to E'[N]$, will be used to hash session
 identifiers to points of order $N$ in $E'/\F_{p^2}$ (although the
 curve $E'$ may be defined over $\F_p$). %
 The second, $H_2:\F_{p^2}\to\{0,1\}^\lambda$, will be a key derivation
@@ -788,13 +789,14 @@ scheme.
 \begin{theorem}
   The Delay Encryption scheme presented above is $\Delta$-IND-CPA
   secure, assuming the $\Delta'$-hardness of the bilinear isogeny
-  shortcut game, with $\Delta\in\Delta' - o(\Delta')$, when $H_2$ is
-  modeled as a random oracle.
+  shortcut game, with $\Delta\in\Delta' - o(\Delta')$, when $H_1$ and
+  $H_2$ are modeled as random oracles.
 
-  Concretely, suppose there is an efficient $\Delta$-IND-CPA adversary
-  $\mathcal{A}$ that has advantage $\epsilon$, and makes $q$ queries
+  Concretely, suppose there is a $\Delta$-IND-CPA adversary
+  $\mathcal{A}$ with advantage $\epsilon$ and complexity $\poly(\lambda,T)$,
+  making $q$ queries
   to $H_2$ (including the queries made by the sub-algorithm
-  $\mathcal{D}$). Then there is an efficient algorithm $\mathcal{B}$
+  $\mathcal{D}$). Then there is a $\poly(\lambda,T)$ algorithm $\mathcal{B}$
   that wins the bilinear isogeny shortcut game with probability at
   least $2\epsilon/q$ and delay $\Delta' = \Delta + q\cdot\poly(\lambda)$.
 \end{theorem}
@@ -804,19 +806,21 @@ scheme.
   order $N$, and evaluates $\phi(P)$. %
   It then passes $p,N,E,E',\phi,P,\phi(P)$ to $\mathcal{A}$ for its
   own precomputation phase. %
-  Whenever $\mathcal{A}$ makes a call to $H_2(x)$, algorithm
-  $\mathcal{B}$ checks whether input $x$ has already been requested,
+  Whenever $\mathcal{A}$ makes calls to $H_1$ or $H_2$, algorithm
+  $\mathcal{B}$ checks whether the input has already been requested,
   in which case it responds with the same answer previously given,
   otherwise it responds with a uniformly sampled output and records
   the query.
 
   When $\mathcal{A}$ requests its challenge, $\mathcal{B}$ does the
   same, receiving $R\in E[(N,\pi-1)]$ and $Q\in E'[N]$. %
-  It then draws a random string $s\in\{0,1\}^\lambda$, and challenges
-  $\mathcal{A}$ with the tuple $(R,s,Q)$.
+  It then draws a random string $s\in\{0,1\}^\lambda$, a random
+  $\id\in\{0,1\}^\lambda$ that was not already queried to $H_1$, it
+  programs the random oracle so that $H_1(\id) = Q$, and challenges
+  $\mathcal{A}$ with the tuple $(R,s,\id)$.
 
   During the guessing phase, whenever $\mathcal{A}$ (actually,
-  $\mathcal{D}$) makes a call to $H_2$, algorithm $\mathcal{B}$
+  $\mathcal{D}$) makes a call to $H_1$ or $H_2$, algorithm $\mathcal{B}$
   (actually, $\mathcal{S})$ responds as before. %
   Finally, when $\mathcal{D}$ outputs its guess, $\mathcal{S}$ simply
   returns a random entry among those that were queried to $H_2$.
@@ -843,14 +847,14 @@ scheme.
   $\mathcal{B}$.
   
   If Algorithm $\mathcal{D}$ runs in time less than $\Delta$,
-  algorithm $\mathcal{S}$ runs in time $\Delta$, plus the time
+  algorithm $\mathcal{S}$ runs in the same time, plus the time
   necessary for drawing the random string $s$ and for answering
   queries to $H_2$. %
   Depending on the computational model, a lookup in the table for
   $H_2$ can take anywhere from $O(1)$ (e.g., RAM model) to $O(q)$
   (e.g., Turing machine). %
   We err on the safe side, and estimate that $\mathcal{S}$ runs in
-  time $\Delta + q\cdot\poly(\lambda)$.
+  time less than $\Delta + q\cdot\poly(\lambda)$.
 \end{proof}
 
 
