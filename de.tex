@@ -537,8 +537,11 @@ a curve defined over $\F_{p^2}$. %
 We will only work with supersingular curves $E/\F_{p^2}$ whose group
 of $\F_{p^2}$-rational points is isomorphic to ${(\Z/(p+1)\Z)}^2$. %
 For these curves, if $N$ is a divisor of $p+1$, we will denote by
-$E[N]$ the subgroup of $\F_{p^2}$-rational points of order $N$, which
-is isomorphic to ${(\Z/N\Z)}^2$.
+$E[N]$ the subgroup of $\F_{p^2}$-rational points of $N$-torsion,
+which is isomorphic to ${(\Z/N\Z)}^2$. %
+We will write $E[N]^\circ$ for the subset of points in $E[N]$ of order
+exactly $N$; when $N$ is prime, this is simply a shorthand for
+$E[N] \setminus \{\O\}$.
 
 However, among these curves some will be curves $E/\F_p$ defined over
 $\F_p$, seen as curves over $\F_{p^2}$ (in algebraic jargon, with
@@ -548,7 +551,9 @@ $\F_{p^2}$-rational torsion subgroup $E[N]$ contains two distinguished
 subgroups: the subgroup $E[N]\cap E(\F_p)$ of points of order $N$
 defined over $\F_p$, which we also denote by $E[(N,\pi-1)]$; and the
 subgroup of points of order $N$ not in $E(\F_p)$, but with
-$x$-coordinate in $\F_p$, which we denote by $E[(N,\pi+1)]$.
+$x$-coordinate in $\F_p$, which we denote by $E[(N,\pi+1)]$. %
+Again, we write $E[(N,\pi-1)]^\circ$ and $E[(N,\pi+1)]^\circ$ for the
+subsets of points of order exactly $N$.
 
 An isogeny is a group morphism of elliptic curves with finite
 kernel. %
@@ -596,7 +601,7 @@ equation~\eqref{eq:adjoin} as an efficient means to verify the
 computation. %
 Formally, they propose two related instantiations of VDF, following
 the same pattern: they both use the same base field $\F_p$, where $p$
-is a prime of the form $p+1=N\cdot f$, chosen so that discrete
+is a prime of the form $p+1=N\cdot f$ with $N$ prime, chosen so that discrete
 logarithms in the group of $N$-th roots of unity in $\F_{p^2}$ (the
 target group of the pairing) are hard (i.e., $N\approx 2^{2\lambda}$
 and $p\sim 2^{\lambda^3}$). %
@@ -693,7 +698,7 @@ however a generic (pseudorandom) walk over $\F_{p^2}$ will offer some
 partial protection against quantum attacks.
 
 Before defining the other routines, we need two hash functions. %
-The first, $H_1:\{0,1\}^\lambda\to E'[N]$, will be used to hash session
+The first, $H_1:\{0,1\}^\lambda\to E'[N]^\circ$, will be used to hash session
 identifiers to points of order $N$ in $E'/\F_{p^2}$ (although the
 curve $E'$ may be defined over $\F_p$). %
 The second, $H_2:\F_{p^2}\to\{0,1\}^\lambda$, will be a key derivation
@@ -1062,29 +1067,35 @@ trusted setup: the proof of isogeny knowledge. %
 Ignoring zero-knowledge temporarily, Eq.~\eqref{eq:adjoin} already
 provides a proof of knowledge of a non-trivial relation between
 $E_{i-1}$ and $E_i$. %
-Let $H_1$ be a hash function mapping into
-$E_{i-1}[(N,\pi-1)] \times E_i[(N,\pi+1)]$.
-Also let $e_N^i$ denote the Weil pairing on $E_i$.
-The proof proceeds as follows
+Let $F$ be a deterministic function which takes as input a pair of
+curves $E_i,E_j$ and outputs a pair of points in
+$E_i[(N,\pi-1)]^\circ \times E_j[(N,\pi+1)]^\circ$. %
+Also let $e_N^i$ denote the Weil pairing on $E_i$.  The proof proceeds
+as follows
 \begin{enumerate}
-\item Hash the curves $E_{i-1},E_i$ to a pair of points
-  $(P,Q) = H_1(E_{i-1},E_i)$;
-\item Publish $\psi_i(P), \hat\psi_i(Q)$.
+\item Map $(E_{i-1},E_i)$ to a pair of points
+  $(P,Q) \gets F(E_{i-1},E_i)$;
+\item Choose a random $r\in(\Z/N\Z)^\times$,
+\item Publish $(R,S) \gets (r\psi_i(P), r\hat\psi_i(Q))$.
 \end{enumerate}
 Then verification simply consists of:
 \begin{enumerate}
-\item Compute $P,Q\gets H_1(E_{i-1},E_i)$,
-\item Check that $\psi_i(P)\in E_i[(N,\pi-1)]$ and
-  $\hat\psi_i(Q)\in E_{i-1}[(N,\pi+1)]$;
-\item Check that $e_N^i(\psi_i(P),Q) = e_N^{i-1}(P,\hat\psi_i(Q))$.
+\item Compute $(P,Q)\gets F(E_{i-1},E_i)$,
+\item Check that $R\in E_i[(N,\pi-1)]^\circ$ and
+  $S\in E_{i-1}[(N,\pi+1)]^\circ$;
+\item Check that $e_N^i(R,Q) = e_N^{i-1}(P,S)$.
 \end{enumerate}
 
 This proof is compact, requiring only four elements of $\F_p$, and
 efficient because computing $\psi_i(P),\hat\psi_i(Q)$ only adds a
 small overhead to the computation of $\psi_i$, and verification takes
 essentially two pairing computations. %
+Note that the restriction in step 2 of the verification implies that
+for any $R$ there exists a unique $S$ satisfying the equation in step
+3, and \emph{vice versa}.
 
 \begin{remark}
+  \label{rk:non-falsifiable}
   While we believe that an adversary not knowing an isogeny from
   $E_{i-1}$ to $E_i$ has a negligible probability of convincing a
   verifier in the protocol above, it is not clear what kind of knowledge
@@ -1107,34 +1118,48 @@ essentially two pairing computations. %
   We defer investigation of this type of assumptions to future work.
 \end{remark}
 
-To turn the protocol above into a zero-knowledge proof, we use an
-additional hash function $H_2$ into
-$E_i[(N,\pi-1)]\times E_{i-1}[(N,\pi+1)]$, and let
-$P',Q' \gets H_2(E_{i-1},E_i)$. %
-We now choose $x,y$ secret and publish a NIZK proof for $(x,y)$ satisfying
+As stated, the proof above is clearly not zero-knowledge, because the
+values $r\psi_i(P)$ and $r\hat\psi_i(Q)$ reveal a considerable amount
+of additional information on $\psi_i$.  %
+To turn the proof into a zero-knowledge one, we use Pedersen
+commitments to mask $r\psi_i(P)$ and $r\hat\psi_i(Q)$, then prove
+their knowledge using standard Schnorr-like proofs of knowledge.
+
+Let $F'$ be a function with same domain and range as $F$ (possibly
+$F'=F$), and let $H$ be a cryptographic hash function with values in
+$\Z/N\Z$.
+
+We compute $P',Q' \gets F'(E_i,E_{i-1})$ and choose
+$x,y\in(\Z/N\Z)^\times$ secret, then we publish a NIZK proof for
+$(X,Y)$ satisfying
 $$ e_N^i(X,Q) e_N^{i-1}(P,Q')^y  = e_N^{i-1}(P,Y) e_N^i(P',Q)^x . $$
 More precisely, we publish:
 \begin{itemize}
 \item two Pedersen commitments 
- $X = x P' + \psi_i(P) \in E_i[(N,\pi-1)]$ and
- $Y = y Q' + \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$,
-\item two public keys $Y' = e_N^{i-1}(P,Q')^y$ and $X' = e_N^i(P',Q)^x$, and
-\item two Schnorr proofs of knowledge $(c,s_X,s_Y)$ for $x$ of $X'$ and $y$ of $Y'$
-over the base points $e_N^{i-1}(P,Q')$ and $e_N^i(P',Q')$, respectively.
-%TODO: Referee says:
-% - p.15, last line: write "what kind of knowledge".
-% but we say knowledge for x and y already?
+ $X = x P' + r\psi_i(P) \in E_i[(N,\pi-1)]$ and
+ $Y = y Q' + r\hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$,
+\item two ``public keys'' $Y' = e_N^{i-1}(P,Q')^y$ and $X' = e_N^i(P',Q)^x$, and
+\item a Schnorr-like proof of knowledge $(c,s_x,s_y)$ for $x$ of $X'$ and $y$ of $Y'$,
+  where:
+  \begin{itemize}
+  \item $s_x = k - xc$ and $s_y = k - yc$ for a randomly chosen
+    $k \in (\Z/N\Z)^\times$, and
+  \item
+    $c = H( e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| X' \| Y' \|
+    e_N^{i-1}(P,Q')^k \| e_N^i(P',Q)^{k} )$.
+  \end{itemize}
 \end{itemize}
 At this point, our verifier now checks 
 \begin{itemize}
-\item $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
+\item that $X \in E_i[(N,\pi-1)]$ and $Y \in E_{i-1}[(N,\pi+1)]$,
+\item that $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
 \item non-triviality $X' \ne e_N^i(X,Q)$ and $Y' \ne e_N^{i-1}(P,Y)$ of the commitments, and
 \item the proofs of knowledge $s_X,s_Y$ using
 $$ c = H( 
   e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| 
   X' \| Y' \| 
-  (X')^c e_N^{i-1}(P,Q')^{s_X} \| 
-  (Y')^c e_N^i(P',Q)^{s_Y} 
+  (X')^c e_N^{i-1}(P,Q')^{s_x} \| 
+  (Y')^c e_N^i(P',Q)^{s_y} 
 ). $$
 \end{itemize}
 In this, we ask verifiers to compute four pairings, which only doubles
@@ -1143,25 +1168,36 @@ the verifier time.
 % four-ish scalar multiplications in the target group.
 % ($e_N^i(P',Q)$, $e_N^{i-1}(P,Q')$, $e_N^i(X,Q)$, $e_N^{i-1}(P,Y)$)
 
-We establish with the proof of knowledge that $X'$ and $Y'$ have
-the desired form, assuming CDH in the target group $G_T\subset\F_{p^2}$,
-and modeling $H,H_1,H_2$ as random oracles.
-% https://www.di.ens.fr/david.pointcheval/Documents/Papers/2000_joc.pdf
-% see: https://crypto.stackexchange.com/questions/48616/prove-the-security-of-schnorrs-signature-scheme
-% I doubt https://eprint.iacr.org/2013/418.pdf helps
-We then apply the non-triviality check to deduce that some such 
- $X - x P' = \psi_i(P) \in E_i[(N,\pi-1)]$ and
- $Y - y Q' = \hat\psi_i(Q) \in E_{i-1}[(N,\pi+1)]$
-exist, thanks to the strong bilinear Diffie-Hellman assumption (SBDH) 
-\cite{10.1007/978-3-540-74143-5_24}. 
-% see https://crypto.stackexchange.com/questions/51729/q-strong-bilinear-diffie-hellman
-It now follows from bilinearity that $e_N^i(X,Q)Y' = e_N^{i-1}(P,Y)X'$, as desired.
+The following lemma shows that this is a NIZK proof for the same
+statement that was proven in the simple protocol revealing
+$r\psi_i(P)$ and $r\hat\psi_i(Q)$, and thus it is a NIZK proof of
+isogeny knowledge, if we accept the non falsifiable assumption
+mentioned in Remark~\ref{rk:non-falsifiable}.
 
-We learn nothing about $X$ and $Y$ except for this pairing equation 
-because Pedersen commitments are perfectly blinding and
-the Schnorr proof is zero-knowledge in the ROM.
+\begin{lemma}
+  Let $E_{i-1},E_i$ be a pair of isogenous elliptic curves, let
+  $(P, Q) = F(E_{i-1},E_i)$. %
+  The protocol above is a NIZK proof of knowledge of a pair $(R,S)$ of
+  points such that $e_N^i(R,Q) = e_N^{i-1}(P,S) \ne 1$, assuming CDH
+  in the target group $G_T\subset\F_{p^2}$, and modeling $H$ as a
+  random oracle.
+\end{lemma}
+\begin{proof}
+  To simulate the proof, it is enough to choose $X$, $Y$, and $X'$ at
+  random, set $Y' = X'e_N^{i-1}(P,Y)/e_N^i(X,Q)$, then use the
+  simulator of the Schnorr proof to simulate knowledge of the discrete
+  logarithms of $X'$ and $Y'$.
 
-\smallskip
+  To extract $(R,S)$ from a prover, we start by using the Schnorr
+  extractor to get $x$ and $y$. %
+  Then, by hypothesis
+  \[e_N^i(X-xP',Q) = \frac{e_N^i(X,Q)}{X'} = \frac{e_N^{i-1}(P,Y)}{Y'}
+    = e_N^{i-1}(P,Y-yQ') \ne 1,\] %
+  thus $R=X-xP'$ and $S=Y-yQ$ is the solution we were looking for.
+
+  Since the Schnorr proof is proven secure under CDH in the ROM, the
+  same hypotheses carry over.
+\end{proof}
 
 For completeness, we also mention some other tools with which one
 might prove knowledge of this isogeny in zero knowledge, although none
@@ -1194,6 +1230,9 @@ Second, there are well known post-quantum isogeny-based proofs:
   this context. %
   More research on the optimization of SeaSign-style proofs for this
   specific context would be welcome.
+\item[SQISign-style proofs~\cite{AC:DKLPW20}] are not compatible with
+  our setting, because they require knowledge of the endomorphism
+  rings.
 \end{description}
 
 
