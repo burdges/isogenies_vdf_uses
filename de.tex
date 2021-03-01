@@ -1275,21 +1275,37 @@ Second, there are well known post-quantum isogeny-based proofs:
 \section{Watermarking}
 \label{sec:watermarking}
 
-A common requirement in cryptocurrencies is to be able to reward
-participants who spend resources to compute the delay function, be it
-in the context of a VDF or a Delay Encryption. %
+When delay functions are used in distributed consensus protocols, it
+is common to want to reward participants who spend resources to
+evaluate the function. %
+For example, in the auction application the participants who compute
+the session key may receive a percentage on the sale to compensate for
+the cost of running the extraction routine.
+
+This raises the question of how to prove that some participant did run
+the computation, rather than simply steal the public output from
+someone else. %
+In the context of VDFs based on groups of unknown order,
 Wesolowski~\cite{Wesolowski} introduced the concept of \emph{proof
-  watermarking}, i.e., attaching the proof of a VDF evaluation to an
-identity, so that the ownership of the proof cannot be usurped without
-performing essentially the same work as evaluating the VDF normally.
+  watermarking}. %
+The output of these VDFs consists of two parts: a delay function
+output and a proof. %
+Wesolowski's idea is to attach to the proof a watermark based on the
+identity of the evaluator, so that anyone verifying the output
+immediately associates it to the legitimate participant. %
+Since producing the proof costs at least as much as evaluating the
+delay function, a usurper who would like to claim an output for
+themself would need to do an amount of work comparable to legitimately
+evaluating the delay function, thus strongly reducing the incentive
+for usurpation.
 
 In the context of isogeny based VDFs, or of extraction in Delay
-Encryption, this is a meaningless concept, because there is simply no
-proof to watermark. %
-Nevertheless, it is possible to attach a watermark to the output of
-the delay function, which gives evidence that the owner of the
-watermark spent an amount of effort comparable to legitimately
-computing the output. %
+Encryption, proof watermarking is a meaningless concept, because there
+is simply no proof to watermark. %
+Nevertheless, it is possible to produce a watermark next to the output
+of the delay function, giving evidence that the owner of the watermark
+spent an amount of effort comparable to legitimately computing the
+output. %
 The idea is to publish a \emph{mid-point} update on the progress of
 the evaluation, and attach this mid-point to the identity of the
 evaluator.
@@ -1319,6 +1335,12 @@ $\hat\phi_2(Q)$, or start from $\hat\phi(Q)$ and compute
 $\frac{\phi_1(\hat\phi(Q))}{\deg\phi_1}$. %
 Either way, they would perform at least half as much work as if they
 had legitimately evaluated the function.
+
+This scheme is easily generalized to several equally spaced mid-points
+along the isogeny evaluation chain: if the isogeny is split into $n$
+pieces of equal size, a usurper would need to do at least $(n-1)/n$
+times as much work as a legitimate evaluator, thus linearly decreasing
+the incentive for usurpation.
 
 It is possible, nevertheless, for a usurper to
 target a specific evaluator, by generating a random $u\in\Z/N\Z$, and
@@ -1470,9 +1492,11 @@ $\approx 7\cdot 10^{10}$. %
 That represents as many coefficients $\alpha$ to store, each occupying
 $\approx 1500$ bits, i.e., $\approx 12$TiB of storage!
 
-We stress that only evaluators need to store that much information,
-however any FPGA design for isogeny-based delay functions must take
-this constraint into account, and provide fast storage with
+We stress that only the evaluation key $\ek$ requires such large
+storage, and thus only evaluators (running extraction in Delay
+Encryption, or evaluating a VDF) need to store it. However any FPGA or
+hardware design for the evaluation of isogeny-based delay functions
+must take this constraint into account, and provide fast storage with
 throughputs of the order of several GiB/s. %
 % While such throughputs may be achieved by attaching several solid
 % state drives in parallel, this solution may turn out to be unpractical
@@ -1488,21 +1512,23 @@ An isogeny-based VDF could dramatically reduce storage requirements by
 doing repeated shorter evaluations, and simply hashing each output
 to be the input for the next evaluation.  We sacrifice verifier time
 by doing so, but verifiers remain fast since they still only compute
-two pairings.  We caution however
+two pairings per evaluation.  We caution however
 that this trick does not apply to Delay Encryption. 
 
 In~\cite{10.1007/978-3-030-34578-5_10}, De Feo \emph{et al.} describe
 an alternative implementation that divides the required storage by a
 factor of $1244$, at the cost of slowing down evaluation by a factor
 of at least $\log_2(1244)$. %
-Unfortunately this trade-off seems unacceptable for applications where
-the evaluator wants to get to the result as quickly as possible. %
+While this trade-off could be acceptable in some non-fully distributed
+applications, it seems incompatible with applications where evaluators
+want to get to the result as quickly as possible, e.g., when several
+evaluators are competing to compute the output. %
 
 It would be very interesting to find compact representations of very
 long isogeny chains which do not come at the expense of efficiently
 evaluating them.
 
-\subsubsection{Optimality}
+\subsubsection{Optimality.}
 Formula~\eqref{eq:isog-proj} is, intuitively, almost optimal, as we
 expect that a $2$-isogeny in projective $(X:Z)$ coordinates should
 require at least $2$ multiplications. %
