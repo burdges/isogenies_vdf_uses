@@ -299,7 +299,7 @@ instantiation is given in Section~\ref{sec:delay-encrypt-from}. %
 Each of the following sections discusses one topic related to both
 Delay Encryption and VDFs based on isogenies:
 Section~\ref{sec:distr-trust-setup} discusses the trusted setup,
-Section~\ref{sec:watermarking} covers watermarking, and
+Section~\ref{sec:watermarking} covers watermarking,
 Section~\ref{sec:secure-impl-isog} introduces the new isogeny formulas
 and makes some practical considerations.
 
@@ -316,7 +316,9 @@ $\Extract$, $\Encaps$ and $\Decaps$--- with the following interface.
   Takes a \emph{security parameter} $\lambda$, a \emph{delay
     parameter} $T$, and produces public parameters consisting of an
   \emph{extraction key} $\ek$ and an \emph{encryption key} $\pk$. %
-  $\Setup$ must run in time $\poly(\lambda,T)$.
+  $\Setup$ must run in time $\poly(\lambda,T)$; the encryption key
+  $\pk$ must have size $\poly(\lambda)$, but the evaluation key $\ek$
+  is allowed to have size $\poly(\lambda,T)$.
 \item[$\Extract(\ek,\id) \to \idk$.] %
   Takes the extraction key $\ek$ and a \emph{session identifier}
   $\id\in\{0,1\}^*$, and outputs a \emph{session key} $\idk$. %
@@ -531,7 +533,7 @@ very similar to what Bitansky \emph{et al.} call Time-lock Puzzles
 \emph{with pre-processing}, albeit slightly weaker.%
 \footnote{Bitansky \emph{et al.} require pre-processing to run in
   sequential time $T\cdot\poly(\lambda)$, but parallel time only
-  $\poly(\lambda,\log T)$.}.
+  $\poly(\lambda,\log T)$.}
 
 We see no technical obstruction to having $\Setup$ run in time
 $\poly(\lambda,\log T)$, and thus being a strictly stronger primitive
@@ -549,7 +551,7 @@ It requires Proofs of Work to exist, and a mild strengthening of it
 Functions. %
 It also implies a weak form of Time-lock Puzzles, and a strengthening
 of it (of which we know no instantiation) implies standard Time-lock
-puzzles. %
+Puzzles. %
 At the same time, no dependency is known between Time-lock Puzzles and
 Verifiable Delay Functions, indicating that Delay Encryption is
 possibly a stronger primitive than both.
@@ -639,7 +641,7 @@ Formally, they propose two related instantiations of VDF, following
 the same pattern: they both use the same base field $\F_p$, where $p$
 is a prime of the form $p+1=N\cdot f$ with $N$ prime, chosen so that discrete
 logarithms in the group of $N$-th roots of unity in $\F_{p^2}$ (the
-target group of the pairing) are hard (i.e., $N\approx 2^{2\lambda}$
+target group $G_T$ of the pairing) are hard (i.e., $N\approx 2^{2\lambda}$
 and $p\sim 2^{\lambda^3}$). %
 They have a common trusted setup, independent of the delay parameter,
 and the usual functionalities of a VDF:
@@ -855,7 +857,9 @@ scheme.
 
   When $\mathcal{A}$ requests its challenge, $\mathcal{B}$ does the
   same, receiving $R\in E[(N,\pi-1)]$ and $Q\in E'[N]$. %
-  It then draws a random string $s\in\{0,1\}^\lambda$, a random
+  If $R$ or $Q$ is the point at infinity, it outputs $1$ and
+  terminates. %
+  Otherwise it draws a random string $s\in\{0,1\}^\lambda$, a random
   $\id\in\{0,1\}^\lambda$ that was not already queried to $H_1$, it
   programs the random oracle so that $H_1(\id) = Q$, and challenges
   $\mathcal{A}$ with the tuple $(R,s,\id)$.
@@ -936,7 +940,7 @@ paraphrasing~\cite{galbraith2018computational}, to choose the
 endomorphism ring first and then compute $E$ given $\End(E)$.
 
 Thus, the solution put forth in~\cite{10.1007/978-3-030-34578-5_10} is
-to generate the starting curve $E$ via a trusted setup, that first
+to generate the starting curve $E$ via a trusted setup that first
 selects $\End(E)$, and then outputs $E$ and throws away the
 information about its endomorphism ring. %
 We stress that, given a random supersingular curve $E$, computing
@@ -958,8 +962,8 @@ would be to generate ordinary pairing friendly curves with large
 isogeny class, as the shortcut attack is then thwarted by the
 difficulty of computing the order of the class group of the
 endomorphism ring. %
-However this possibly seems an even harder problem than hashing to the
-supersingular class.
+However finding such curves possibly seems an even harder problem than
+hashing to the supersingular class.
 
 \paragraph{Discrete logarithm attacks} compute $\hat\phi(Q)$ by
 directly solving the pairing equation~\eqref{eq:adjoin}. %
@@ -1182,7 +1186,7 @@ More precisely, we publish:
     $k \in (\Z/N\Z)^\times$, and
   \item
     $c = H( e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| X' \| Y' \|
-    e_N^{i-1}(P,Q')^k \| e_N^i(P',Q)^{k} )$.
+    e_N^i(P',Q)^{k} \| e_N^{i-1}(P,Q')^k )$.
   \end{itemize}
 \end{itemize}
 At this point, our verifier now checks 
@@ -1190,12 +1194,12 @@ At this point, our verifier now checks
 \item that $X \in E_i[(N,\pi-1)]$ and $Y \in E_{i-1}[(N,\pi+1)]$,
 \item that $e_N^i(X,Q) Y' = e_N^{i-1}(P,Y) X'$,
 \item non-triviality $X' \ne e_N^i(X,Q)$ and $Y' \ne e_N^{i-1}(P,Y)$ of the commitments, and
-\item the proofs of knowledge $s_X,s_Y$ using
+\item the proofs of knowledge $s_x,s_y$ using
 $$ c = H( 
   e_N^{i-1}(P,Q') \| e_N^i(P',Q) \| 
   X' \| Y' \| 
-  (X')^c e_N^{i-1}(P,Q')^{s_x} \| 
-  (Y')^c e_N^i(P',Q)^{s_y} 
+  (X')^c e_N^i(P',Q)^{s_x} \| 
+  (Y')^c e_N^{i-1}(P,Q')^{s_y} 
 ). $$
 \end{itemize}
 In this, we ask verifiers to compute four pairings, which only doubles
@@ -1207,7 +1211,7 @@ the verifier time.
 The following lemma shows that this is a NIZK proof for the same
 statement that was proven in the simple protocol revealing
 $r\psi_i(P)$ and $r\hat\psi_i(Q)$, and thus it is a NIZK proof of
-isogeny knowledge, if we accept the non falsifiable assumption
+isogeny knowledge, if we accept the non-falsifiable assumption
 mentioned in Remark~\ref{rk:non-falsifiable}.
 
 \begin{lemma}
@@ -1296,7 +1300,7 @@ immediately associates it to the legitimate participant. %
 Since producing the proof costs at least as much as evaluating the
 delay function, a usurper who would like to claim an output for
 themself would need to do an amount of work comparable to legitimately
-evaluating the delay function, thus strongly reducing the incentive
+evaluating the delay function, which strongly reduces the incentive
 for usurpation.
 
 In the context of isogeny based VDFs, or of extraction in Delay
@@ -1375,7 +1379,7 @@ For isogeny based delay functions, we argue that the degree of
 assurance seems to be nearly as good as for RSA based ones, although
 more research is certainly needed. %
 To support this claim, we give here more details on the way the
-evaluation of $\hat\psi$ is performed, that were omitted
+evaluation of $\hat\phi$ is performed, that were omitted
 by~\cite{10.1007/978-3-030-34578-5_10}.
 
 For a start, we must choose a prime degree $\ell$. %
@@ -1425,7 +1429,7 @@ $(\alpha:1)$ as
 and its image curve is the Montgomery curve defined by
 $A = 2-4\alpha^2$. %
 By comparing with the multiplication-by-$2$ map on $E_\alpha$, we
-obtain the dual map to $\phi$ as
+obtain the dual map to $\phi_\alpha$ as
 \begin{equation}
   \label{eq:isog-backward}
   \hat\phi_\alpha(x,y) = \left(\frac{(x+1)^2}{4\alpha x}, \dots\right).
@@ -1458,9 +1462,9 @@ possible choices are
 As we know that $(0,0)$ generates the dual isogeny to $\phi_\alpha$,
 neither choice of $\alpha'$ will define a backtracking walk. %
 Interestingly, Castryck and Decru~\cite{10.1007/978-3-030-44223-1_7} show
-that when $p=7\mod 8$, if $\alpha\in\F_p$, $\phi_\alpha$ is a
+that when $p=7\mod 8$, if $\alpha\in\F_p$, if $\phi_\alpha$ is a
 horizontal isogeny (see definition in~\cite{10.1007/978-3-030-44223-1_7}),
-and $\alpha'$ is defined as
+and if $\alpha'$ is defined as
 \[\alpha' = \left(\alpha + \sqrt{\alpha^2-1})\right)^2\]
 where $\sqrt{\alpha^2-1}$ denotes the principal square root, then
 $\alpha'\in\F_p$ and $\phi_{\alpha'}$ is horizontal too. %
