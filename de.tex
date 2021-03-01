@@ -164,7 +164,8 @@ Unfortunately, the only efficient HTLPs introduced
 in~\cite{C:MalThy19} are simply homomorphic (either additively or
 multiplicatively), and they are thus only useful for voting; fully
 homomorphic TLPs, which are necessary for auctions, are only known
-from indistinguishability obfuscation~\cite{FOCS:GGHRSW13}, and are
+from Fully Homomorphic Encryption~\cite{10.1007/978-3-030-36033-7_16}
+or from Indistinguishability Obfuscation~\cite{FOCS:GGHRSW13}, and are
 thus unpractical. %
 
 On top of that, it can be argued that Time-lock Puzzles are not the
@@ -253,19 +254,54 @@ delay property. %
 Fortunately, this requirement is easily satisfied by using randomness
 beacons, which, conveniently, can be implemented using VDFs.
 
-\subsubsection{Plan.}
-We start by defining Delay Encryption in
-Section~\ref{sec:definitions}, and give our instantiation in
-Section~\ref{sec:delay-encrypt-from}. %
-In the following sections, we discuss several topics related to both
-Delay Encryption and VDFs from isogenies and pairings:
-Section~\ref{sec:distr-trust-setup} explains how to efficiently
-implement the trusted setup, common to both our Delay Encryption and
-the isogeny based VDF, in a distributed manner;
-Section~\ref{sec:watermarking} covers Watermarking, a mechanism to
-prove ``ownership'' of a ``slow'' computation; finally
-Section~\ref{sec:secure-impl-isog} discusses implementation details
-and challenges for isogeny based delay functions.
+\subsubsection{Contributions.}
+Our main contribution is the introduction of Delay Encryption: we
+formally define the primitive and its security, then argue about its
+naturalness by relating it to other well known primitives such as IBE
+and VDFs.
+
+Building on Boneh and Franklin's IBE
+scheme~\cite{doi:10.1137/S0097539701398521}, and on a framework
+introduced in~\cite{10.1007/978-3-030-34578-5_10} for VDFs, we give an
+instantiation of Delay Encryption from isogeny walks in graphs of
+pairing friendly supersingular elliptic curves. %
+We prove the security of our instantiation using a new assumption,
+related to both the Bilinear Diffie-Hellman assumption typical of
+pairing based protocols, and the Isogeny Shortcut assumption used for
+isogeny based VDFs.
+
+Additionally, we cover some topics related to isogeny-based delay
+functions which apply to both our Delay Encryption and to VDFs, which
+were left untreated by~\cite{10.1007/978-3-030-34578-5_10}:
+\begin{enumerate}
+\item We show how to realize the trusted setup needed in all
+  isogeny-based delay protocols in a distributed manner, and propose
+  an efficient implementation based on a new zero-knowledge proof of
+  isogeny knowledge ---whose security we are only able to prove
+  heuristically using a non-falsifiable assumption.
+\item We show how to claim ``ownership'' of a delay function
+  evaluation (aka extraction, in the Delay Encryption jargon), by
+  attaching a ``watermark'' to the result of the evaluation. %
+  Watermarking can be used in distributed consensus protocols to
+  reward the party who bears the load of evaluating the delay
+  function.
+\item We provide new elliptic curve representations and isogeny
+  formulas optimized for the operations occurring in isogeny based
+  delay functions. %
+  Based on these, we estimate the length of the isogeny walk needed to
+  achieve a certain delay, and the size of the associated public
+  parameters.
+\end{enumerate}
+
+\paragraph{Plan.}
+Delay Encryption is defined in Section~\ref{sec:definitions}, and our
+instantiation is given in Section~\ref{sec:delay-encrypt-from}. %
+Each of the following sections discusses one topic related to both
+Delay Encryption and VDFs based on isogenies:
+Section~\ref{sec:distr-trust-setup} discusses the trusted setup,
+Section~\ref{sec:watermarking} covers watermarking, and
+Section~\ref{sec:secure-impl-isog} introduces the new isogeny formulas
+and makes some practical considerations.
 
 
 \section{Definitions}
